@@ -1,8 +1,6 @@
 # PowerShell Open AI API Wrapper
 A set of PowerShell functions to have a chat with OpenAIs completion API via PowerShell.
 
-# PowerShell-OpenAI-API-Wrapper
-
 ## Invoke-OpenAIAPI
 
 This function sends a request to the OpenAI API to generate a response for the given prompt. It takes the following parameters:
