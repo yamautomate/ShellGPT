@@ -52,3 +52,16 @@ This function adds a new message to an existing ChatGPT conversation using the g
 - `$max_tokens`: The maximum number of tokens to generate in the response.
 
 The function adds the new message to the previous messages, gets the last five messages from the previous messages, constructs the prompt to send to the ChatGPT API, and then uses `Invoke-OpenAIAPI` to send the request and get a response. Finally, it returns the new full prompt with the added text response from the API.
+
+
+## Start-ChatGPTforPowerShell 
+This function starts a conversation with the ChatGPT model using PowerShell. It prompts the user to provide the instructor for ChatGPT, and then allows the user to enter queries for ChatGPT and receive responses. It takes the following parameters:
+
+- `$APIKey`: API key for ChatGPT.
+- `$model`: The ID of the GPT model to use.
+- `$temperature`: The temperature value to use for sampling.
+- `$stop`: The string to use as a stopping criterion.
+- `$max_tokens`: The maximum number of tokens to generate in the response.
+
+### Output
+This function does not output any values, but displays the conversation in the PowerShell console.
