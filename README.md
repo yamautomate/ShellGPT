@@ -4,7 +4,7 @@ This PowerShell code provides a simple interface to the OpenAI "Chat Completion"
 Endpoint used: https://api.openai.com/v1/chat/completions
 
 ## Start-ChatGPTforPowerShell 
-This function starts a ChatGPT-like conversation with the `gpt-3.5-turbo` model using PowerShell. 
+This function starts a ChatGPT-like conversation with the `gpt-3.5-turbo` model using PowerShell via OpenAIs "Chat Completion" API.
 
 It  prompts the user to continue an existing conversation or start a new one. If the user wants to continue an existing conversation, they must provide the full path to the prompt*.json file. If the user wants to start a new conversation, they must provide the instructor for ChatGPT.
 
