@@ -141,7 +141,7 @@ function Add-OpenAIAPIMessageToConversation {
     $returnPromptFromAPI = Invoke-OpenAIAPI -prompt $prompt -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
     
     # Return the response from the API and the updated previous messages.
-    return $returnPromptFromAPI, $previousMessages
+    return $returnPromptFromAPI
     
 }
 
@@ -192,18 +192,16 @@ function Start-ChatGPTforPowerShell {
         else
         {
             # Call the Add-ChatGPTMessageToConversation function to add the user's query to the conversation and get the response from ChatGPT.
-            $conversationPrompt, $previousMessages = Add-OpenAIAPIMessageToConversation -query $userQuery -previousMessages $previousMessages -instructor $instructor -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
+            $conversationPrompt = Add-OpenAIAPIMessageToConversation -query $userQuery -previousMessages $previousMessages -instructor $instructor -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
+            $previousMessages = $conversationPrompt
         }
     }
 }
 
-$APIKey = "your key"
+$APIKey = "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"
 $model = "gpt-3.5-turbo" 
 $temperature = 0.6
 $stop = "\n"
 $max_tokens = 3500
 
 Start-ChatGPTforPowerShell -APIKey $APIKey -model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
-
-
-
