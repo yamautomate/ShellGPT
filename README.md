@@ -4,13 +4,26 @@ This PowerShell code provides a simple interface to the OpenAI "Chat Completion"
 Endpoint used: https://api.openai.com/v1/chat/completions
 
 ## Start-ChatGPTforPowerShell 
-This function starts a ChatGPT-like conversation with the `gpt-3.5-turbo` model using PowerShell. It prompts the user to provide the instructor for ChatGPT, and then allows the user to enter queries for ChatGPT and receive responses. It takes the following parameters:
+This function starts a ChatGPT-like conversation with the `gpt-3.5-turbo` model using PowerShell. 
+
+It  prompts the user to continue an existing conversation or start a new one. If the user wants to continue an existing conversation, they must provide the full path to the prompt*.json file. If the user wants to start a new conversation, they must provide the instructor for ChatGPT.
+
+During the conversation, the user can enter their query for ChatGPT. If the user enters 'q' or 'quit', the conversation stops, and the user can export the current prompt for future use. The user can also choose to start a new conversation.
 
 - `$APIKey`: API key for ChatGPT.
 - `$model`: The ID of the GPT model to use.
 - `$temperature`: The temperature value to use for sampling.
 - `$stop`: The string to use as a stopping criterion.
 - `$max_tokens`: The maximum number of tokens to generate in the response.
+
+### Import and Export of conversation prompts
+A conversation with the gpt-3.5-turbo Model via OpenAI's APIs is made up of prompts. A prompt can also be used to steer the behavour of the AI. It can for instance, become a Pirate, an Actor, or anything you want it to be. Literally. At some point you may want to export your current prompt, so that you can continue on it. 
+
+The import and export functions allow users exactly that; to continue conversations from a previous session or save a conversation for later use.
+
+The user needs to provide the full path to a prompt*.json file that contains the prompts and responses from a previous conversation. The function uses the `Import-PromptFromJson` function to import the prompts and responses from the file.
+
+The export functionality allows the user to save the prompts and responses from the current conversation to a prompt*.json file, which can be used later to continue the conversation. The user is prompted to provide the full path to the file and then it is written to disk using the `Out-File` function.
 
 ### Output
 This function does not output any values, but displays the conversation in the PowerShell console.
