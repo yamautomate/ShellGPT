@@ -145,6 +145,18 @@ function Add-OpenAIAPIMessageToConversation {
     
 }
 
+
+function Import-PromptFromJson {
+    param (
+        [string]$Path
+    )
+
+    $promptJson = Get-Content -Path $Path -Raw
+    $prompt = $promptJson | ConvertFrom-Json
+
+    return $prompt
+}
+
 # This function starts a new ChatGPT conversation.
 function Start-ChatGPTforPowerShell {
     param (
@@ -155,19 +167,36 @@ function Start-ChatGPTforPowerShell {
         $max_tokens       # Max_tokens parameter for ChatGPT
     )
 
-    # Display a welcome message and instructions for stopping the conversation.
-    Write-Host "To stop the current conversation enter 'q' or 'quit' in the query" -ForegroundColor yellow
+    $contiueConversation = $(Write-Host "Do you want to restore an existing conversation? (enter 'y' or 'yes'): " -ForegroundColor yellow -NoNewLine; Read-Host) 
 
-    # Initialize the previous messages array.
-    $previousMessages = @()
+    if ($contiueConversation  -eq "y" -or $contiueConversation -eq "yes")
+    {
+        Write-Host "Initializing Import..." 
+        # Display a welcome message and instructions for stopping the conversation.
+        Write-Host "To stop the current conversation enter 'q' or 'quit' in the query" -ForegroundColor yellow
 
-    # Prompt the user to provide the instructor for ChatGPT.
-    $instructor = $(Write-Host "Provide the instructor for ChatGPT: " -ForegroundColor DarkGreen -NoNewLine; Read-Host) 
-    
-    # Call the Invoke-ChatGPTConversation function to start the conversation and add the initial prompt to the previous messages array.
-    $conversationPrompt = New-OpenAIAPIConversation -query (Read-Host "Your query for ChatGPT") -instructor $instructor -APIKey $APIKey -model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
+        $importPath = $(Write-Host "Provide the full path to the prompt*.json file you want to continue the conversation on: " -ForegroundColor yellow -NoNewLine; Read-Host) 
+        $importedPrompt = Import-PromptFromJson -Path $importPath
+        $previousMessages = $importedPrompt
+    }
+    else 
+    {
+        Write-Host "Starting a new one..." 
+        # Display a welcome message and instructions for stopping the conversation.
+        Write-Host "To stop the current conversation enter 'q' or 'quit' in the query" -ForegroundColor yellow
 
-    $previousMessages += $conversationPrompt
+        # Initialize the previous messages array.
+        $previousMessages = @()
+
+        # Prompt the user to provide the instructor for ChatGPT.
+        $instructor = $(Write-Host "Provide the instructor for ChatGPT: " -ForegroundColor DarkGreen -NoNewLine; Read-Host) 
+
+        # Call the Invoke-ChatGPTConversation function to start the conversation and add the initial prompt to the previous messages array.
+        $conversationPrompt = New-OpenAIAPIConversation -query (Read-Host "Your query for ChatGPT") -instructor $instructor -APIKey $APIKey -model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
+
+        $previousMessages += $conversationPrompt
+    }
+
 
     # Initialize the continue variable.
     $continue = $true
@@ -181,6 +210,14 @@ function Start-ChatGPTforPowerShell {
         # If the user enters 'q' or 'quit', stop the conversation and ask if they want to start a new conversation.
         if ($userQuery -eq 'q' -or $userQuery -eq 'quit') {
             $continue = $false
+
+            $exportPrompt = $(Write-Host "Do you want to export the current prompt for future use? (enter 'y' or 'yes'): " -ForegroundColor yellow -NoNewLine; Read-Host) 
+            if ($exportPrompt -eq "y" -or $exportPrompt -eq "yes")
+            {
+               Write-Host "Initializing export.." 
+               $exportPath = $(Write-Host "Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: " -ForegroundColor yellow -NoNewLine; Read-Host) 
+               $previousMessages | ConvertTo-Json | Out-File -Encoding utf8 -FilePath $exportPath
+            }
 
             $newConvo = $(Write-Host "Do you want to start a new conversation (enter 'y' or 'yes'): " -ForegroundColor yellow -NoNewLine; Read-Host) 
             if ($newConvo -eq "y" -or $newConvo -eq "yes")
@@ -198,7 +235,7 @@ function Start-ChatGPTforPowerShell {
     }
 }
 
-$APIKey = "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"
+$APIKey = "YOUR_API_KEY"
 $model = "gpt-3.5-turbo" 
 $temperature = 0.6
 $stop = "\n"
