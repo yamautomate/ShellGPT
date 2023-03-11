@@ -6,7 +6,7 @@ Endpoint used: https://api.openai.com/v1/chat/completions
 ## Start-ChatGPTforPowerShell 
 This function starts a ChatGPT-like conversation with the `gpt-3.5-turbo` model using PowerShell via OpenAIs "Chat Completion" API.
 
-It  prompts the user to continue an existing conversation or start a new one. If the user wants to continue an existing conversation, they must provide the full path to the prompt*.json file. If the user wants to start a new conversation, they must provide the instructor for ChatGPT.
+It  prompts the user to continue an existing conversation or start a new one. If the user wants to continue an existing conversation, they must provide the full path to the prompt*.json file. If the user wants to start a new conversation, they must provide the instructor ('System' prompt, to tell the model what it is) for the model.
 
 During the conversation, the user can enter their query for ChatGPT. If the user enters 'q' or 'quit', the conversation stops, and the user can export the current prompt for future use. The user can also choose to start a new conversation.
 
@@ -17,7 +17,7 @@ During the conversation, the user can enter their query for ChatGPT. If the user
 - `$max_tokens`: The maximum number of tokens to generate in the response.
 
 ### Import and Export of conversation prompts
-A conversation with the gpt-3.5-turbo Model via OpenAI's APIs is made up of prompts. A prompt can also be used to steer the behavour of the AI. It can for instance, become a Pirate, an Actor, or anything you want it to be. Literally. At some point you may want to export your current prompt, so that you can continue on it. 
+A conversation with the gpt-3.5-turbo Model via OpenAI's APIs is made up of prompts. A prompt can also be used to steer the behaviour of the model. It can for instance, become a pirate, an actor, or anything you want it to be. Literally. At some point you may want to export your current prompt, so that you can continue on it. 
 
 The import and export functions allow users exactly that; to continue conversations from a previous session or save a conversation for later use.
 
