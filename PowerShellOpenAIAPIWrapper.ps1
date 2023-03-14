@@ -188,16 +188,23 @@ function Set-CompletionAPICharacter {
     return $promptToReturn
 }
 
-# A wrapper function that creates the prompt and calls the Open AI API using "New-ChatGPTPrompt" and "Invoke-OpenAIAPI"
+# A wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI"
 function New-CompletionAPIConversation {
     param (
+        [Parameter(Mandatory=$false)]      
         [ValidateSet("Chat", "SentimentAndTickerAnalysis","SentimentAnalysis","IntentAnalysis","IntentAndSubjectAnalysis")]
         [System.Object]$Character,     # The character to use. If specified, do not add instructor and assistantReply
+        [Parameter(Mandatory=$true)]  
         [string]$query,                # The user's query to add to the prompt.
+        [Parameter(Mandatory=$false)]  
         [string]$instructor,           # The instruction string to add to the prompt. Only use when you dont use a Character.
+        [Parameter(Mandatory=$false)]  
         [string]$assistantReply,       # The first, unseen reply by the model. Can be used to help train it and get expected output. Only use when you dont use a Character.
+        [Parameter(Mandatory=$true)]  
         [string]$APIKey,               # API key for ChatGPT.
+        [Parameter(Mandatory=$true)]  
         [double]$temperature,          # The temperature value to use for sampling.
+        [Parameter(Mandatory=$true)]  
         [int]$max_tokens               # The maximum number of tokens to generate in the response.
     )
     
@@ -217,7 +224,7 @@ function New-CompletionAPIConversation {
     return $promptToReturn
 }
 
-# This function acts as a wrappe and adds a new message to an existing ChatGPT conversation using the given parameters.
+# This function acts as a wrapper and adds a new message to an existing conversation/prompt using the given parameters.
 function Add-CompletionAPIMessageToConversation {
     param (
         [Parameter(Mandatory=$true)]  
@@ -231,8 +238,7 @@ function Add-CompletionAPIMessageToConversation {
         [Parameter(Mandatory=$true)]    
         [double]$temperature,       # The temperature value to use for sampling.
         [Parameter(Mandatory=$true)]    
-        [int]$max_tokens,         # The maximum number of tokens to generate in the response.
-        $character
+        [int]$max_tokens         # The maximum number of tokens to generate in the response.
     )
 
     $prompt = New-CompletionAPIPrompt -query $query -role "user" -previousMessages $previousMessages
@@ -313,7 +319,7 @@ function Start-ChatGPTforPowerShell {
             }
         }
 
-        $conversationPrompt = New-CompletionAPIConversation -Character $Character -query (Read-Host "Your query for ChatGPT") -instructor $instructor -APIKey $APIKey -model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
+        $conversationPrompt = New-CompletionAPIConversation -Character $Character -query (Read-Host "Your query for ChatGPT") -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
 
         $previousMessages += $conversationPrompt
     }
@@ -350,7 +356,7 @@ function Start-ChatGPTforPowerShell {
         else
         {
             # Call the Add-ChatGPTMessageToConversation function to add the user's query to the conversation and get the response from ChatGPT.
-            $conversationPrompt = Add-CompletionAPIMessageToConversation -query $userQuery -previousMessages $previousMessages -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -character $Character
+            $conversationPrompt = Add-CompletionAPIMessageToConversation -query $userQuery -previousMessages $previousMessages -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
             $previousMessages = $conversationPrompt
         }
     }
