@@ -1,5 +1,5 @@
 # PowerShell Open AI Completion API Module
-This PowerShell code provides a simple interface to the OpenAI "Chat Completion" API for the GPT model "gpt-3.5-turbo", allowing users to initiate and continue conversations with the GPT model using PowerShell.
+This PowerShell code provides a simple interface to the OpenAI "Chat Completion" API for the GPT model "gpt-3.5-turbo", allowing users to initiate and continue conversations with the GPT model using PowerShell. This modul is mabe by the community and not OpenAI.
 
 Endpoint used: https://api.openai.com/v1/chat/completions
 
