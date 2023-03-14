@@ -8,10 +8,7 @@ function Invoke-CompletionAPI {
         [Parameter(Mandatory=$true)]
         [double]$temperature,   # The temperature value to use for sampling.
         [Parameter(Mandatory=$true)]
-        [int]$max_tokens,       # The maximum number of tokens to generate in the response.
-        [Parameter(Mandatory=$false)]
-        $character              # The character to use. Is needed when we use a character and want to make sure we append the Ouput of the API correctly to our prompt.
-
+        [int]$max_tokens       # The maximum number of tokens to generate in the response.
     )
 
     $model = "gpt-3.5-turbo" 
