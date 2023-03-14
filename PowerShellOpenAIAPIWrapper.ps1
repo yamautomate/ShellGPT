@@ -361,9 +361,3 @@ function Start-ChatGPTforPowerShell {
         }
     }
 }
-
-$APIKey = "YOUR_API_KEY"
-$temperature = 0.6
-$max_tokens = 3500
-
-Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
