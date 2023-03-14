@@ -4,6 +4,29 @@ This PowerShell code provides a simple interface to the OpenAI "Chat Completion"
 Endpoint used: https://api.openai.com/v1/chat/completions
 
 
+## How to use the "Completion API" module
+To use the "Completion API" module and its functions, you need to install the module from PowerShell Gallery first using `Install-Modul`.
+1. Open PowerShell and run `Install-Module`:
+```powershell
+Install-Module CompletionAPI
+```
+2. To check if it was installed successfully you can run `Get-Help`:
+```powershell
+Get-Help CompletionAPI
+```
+
+The Output should list all available cmldets/functions:
+```powershell
+Name                              Category  Module                    Synopsis
+----                              --------  ------                    --------
+Add-CompletionAPIMessageToConver… Function  CompletionAPI             …
+Invoke-CompletionAPI              Function  CompletionAPI             …
+New-CompletionAPIConversation     Function  CompletionAPI             …
+New-CompletionAPIPrompt           Function  CompletionAPI             …
+Set-CompletionAPICharacter        Function  CompletionAPI             …
+```
+
+
 ## New-CompletionAPIPrompt
 This function is used to create a prompt for the `Invoke-CompletionAPI` function.
 
