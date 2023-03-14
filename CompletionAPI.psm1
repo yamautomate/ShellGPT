@@ -760,6 +760,3 @@ function Start-ChatGPTforPowerShell {
         }
     }
 }
-
-
-$apikey = "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"
