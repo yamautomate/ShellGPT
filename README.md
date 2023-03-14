@@ -5,7 +5,7 @@ Endpoint used: https://api.openai.com/v1/chat/completions
 
 
 ## How to use the "Completion API" module
-To use the "Completion API" module and its functions, you need to install the module from PowerShell Gallery first using `Install-Modul`.
+To use the "Completion API" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
 Install-Module CompletionAPI
