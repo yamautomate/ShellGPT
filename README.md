@@ -16,14 +16,14 @@ Get-Help CompletionAPI
 ```
 
 The Output should list all available cmldets/functions:
-```powershell
+```
 Name                              Category  Module                    Synopsis
 ----                              --------  ------                    --------
-Add-CompletionAPIMessageToConver… Function  CompletionAPI             …
-Invoke-CompletionAPI              Function  CompletionAPI             …
-New-CompletionAPIConversation     Function  CompletionAPI             …
-New-CompletionAPIPrompt           Function  CompletionAPI             …
-Set-CompletionAPICharacter        Function  CompletionAPI             …
+Set-CompletionAPICharacter        Function  CompletionAPI             This function generates a "Character" (a prompt that represents a character) to use. These five characters are hardcoded into that function.
+New-CompletionAPIPrompt           Function  CompletionAPI             Creates a prompt (System.Object) for the function "Invoke-CompletionAPI" to be consumed.
+New-CompletionAPIConversation     Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-     CompletionAPIPrompt" and "Invoke-CompletionAPI".
+Invoke-CompletionAPI              Function  CompletionAPI             Sends a prompt (System.Object) to the OpenAI Completion API (api.openai.com/v1/chat/completions) using "gpt-3.5-turbo" model, gets a response, and appends it to the prompt.
+Add-CompletionAPIMessageToConver… Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI".
 ```
 
 
