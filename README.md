@@ -37,6 +37,43 @@ Then we can use `Start-ChatGPTforPowerShel` and pass along `$APIKey`, `$temperat
 Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
 ```
 
+## Understanding prompts
+Before we construct a prompt, we need to define what that actually is.
+A prompt is a collection of one or more messages between one ore more parties. It resembles a conversation. It looks like this:
+```powershell
+Name                           Value
+----                           -----
+content                        You are a helpful AI.
+role                           system
+content                        How can I help you today?
+role                           assistant
+content                        What is the Capitol of Switzerland?
+role                           user
+```
+
+As shown above, a message in a prompt can be assigned to three roles:
+- `system`
+- `assistant`
+- `user`
+
+With that, we can construct a chain of messages (a conversation) between an assistant, and a user. The `system` value defines the general behaviour of the assistant. With that, you can control what the model should behave and act like. For example: 
+- "You are a helpful AI"
+- "A Pirate, that answers every request with Arrrr!"
+- "A villain in a James Bond Movie"
+
+With the prompt, you can generate context for the model. For example, you can use prompts to construct a conversation, or you can use prompts to "train" the model to behave even more as you'd like. 
+
+When we use prompts for conversation, the prompt contains the whole conversation, so that the model has enough context in order to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In a conversation, we want to make sure we always incorporate the response from the model.
+
+When we use prompts for training, the prompt also contains a conversation, but this one was specifically crafted to show the model how it should behave. This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt you can use. 
+
+In both scenarios we add the users question/message to the prompt and send it to the model for completion.
+
+## How to construct prompts
+TBD
+
+
 # Function Documentation
-See FUNCTIONS.md
+For detailled funtion documentation see the FUNCTIONS.md [here](https://github.com/yamautomate/PowerShell-OpenAI-API-Wrapper/blob/main/FUNCTIONS.md).
+
 
