@@ -145,7 +145,7 @@ Tokens are used as the unit for pricing and quotas for the OpenAI API. The speci
 
 To limit our spending, we can leverage the API Parameter `max_tokens`. With it, we can define what the maximum amount of tokens is we want to use. If the prompt and completion requires more tokens than what we have defined in `max_tokens`, the API returns an error.
 
-## How to construct prompts
+## How to construct prompts using the CompletionAPI Module
 TBD
 
 
