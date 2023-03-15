@@ -143,7 +143,7 @@ As the `gpt-3.5-turbo` can at max. process and complete prompts with 4096 tokens
 
 Tokens are used as the unit for pricing and quotas for the OpenAI API. The specific pricing and quota details can be found on the OpenAI website. For example, for the `gpt-3.5-turbo` model, 1k tokens to be processed costs $0.002
 
-To limit our spending, we can leverage the API Parameter `max_tokens'. With it, we can define what the maximum amount of tokens is we want to use. If the prompt and completion requires more tokens than what we have defined in `max_tokens', the API returns an error.
+To limit our spending, we can leverage the API Parameter `max_tokens`. With it, we can define what the maximum amount of tokens is we want to use. If the prompt and completion requires more tokens than what we have defined in `max_tokens`, the API returns an error.
 
 ## How to construct prompts
 TBD
