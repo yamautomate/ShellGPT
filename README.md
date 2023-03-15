@@ -69,6 +69,25 @@ When we use prompts for conversation, the prompt contains the whole conversation
 
 When we use prompts for training, the prompt also contains a conversation, but this one was specifically crafted to show the model how it should behave. This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
 
+For examnple, the prompt for the trained character "SentimentAnalysis" look like this:
+```
+Name                           Value
+----                           -----
+content                        You are an API that analyzes text sentiment. You provide your answer in a .JSON format in the following structure: { "sentiment": 0.9 } You only answer with the .JSON object. You do not provide any reasoning why you did it that way.  The sentiment is a va…
+role                           system
+content                        {[sentiment, 0.9]}
+role                           assistant
+```
+And the Instructor expanded reads:
+```
+You are an API that analyzes the core intent of the text. 
+You provide your answer in a .JSON format in the following structure: { "intent": descriptive verb for intent } 
+You only answer with the .JSON object. 
+You do not provide any reasoning why you did it that way. 
+The intent represents the one intent you extracted during your analysis. 
+If you can not extract the intent with a probability of 70% or more, you specify it with "unknown" in your response.
+```
+
 So, essentially we stitch together an object that represents a conversation between a `system`, the `assistant` and a `user`. Then we add the users question/message to the conversation prompt and send it to the model for completion.
 
 ## How to construct prompts
