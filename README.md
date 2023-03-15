@@ -25,7 +25,17 @@ New-CompletionAPIConversation     Function  CompletionAPI             This is a 
 Invoke-CompletionAPI              Function  CompletionAPI             Sends a prompt (System.Object) to the OpenAI Completion API (api.openai.com/v1/chat/completions) using "gpt-3.5-turbo" model, gets a response, and appends it to the prompt.
 Add-CompletionAPIMessageToConver… Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI".
 ```
-
+## How to start the interactive ChatBot for PowerShell
+First we need to define the `$APIKey`, `$temperature` and `$max_token` parameters:
+```powershell
+$APIKey = "YOUR_API_KEY"
+$temperature = 0.6
+$max_tokens = 3500
+```
+Then we can use `Start-ChatGPTforPowerShel` and pass along `$APIKey`, `$temperature` and `$max_token` we defined above:
+```powershell
+Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+```
 
 ## New-CompletionAPIPrompt
 This function is used to create a prompt for the `Invoke-CompletionAPI` function.
@@ -56,7 +66,6 @@ role                           assistant
 content                        What is the Capitol of Switzerland?
 role                           user
 ```
-
 
 ## Invoke-CompletionAPI
 This PowerShell function is used to send a prompt to the OpenAI Completion API, get a response, and append it to the prompt.
@@ -325,7 +334,6 @@ Provide the full path to the prompt*.json file that you want to export now and l
 Do you want to start a new conversation (enter 'y' or 'yes'): n
 ```
 
-
 ## Import-PromptFromJson
 This function takes in a file path to a JSON file that contains a prompt for a ChatGPT conversation and converts the JSON data into a PowerShell object.
 ### Parameters
@@ -349,5 +357,16 @@ How many inhabitants does it have?
 As of 2021, the estimated population of Bern is around 133,000 inhabitants.
 Who governs it?
 The government of Bern is composed of a city council, which is made up of five members, and a mayor, who serves as the head of the council. The council is responsible for the administration of the city, including public services, infrastructure, and social programs. The city council members are elected by the people ... 
+```
+
+## Export-PromptToJson
+This function takes in a file path to a JSON file that contains a prompt for a ChatGPT conversation and converts the JSON data into a PowerShell object.
+
+### Parameters
+- `Path`: Required. The file path to the JSON file containing the prompt. This parameter is mandatory.
+- `Prompt`: Required. The prompt (System.Object) to export to a .JSON file.
+### Usage
+```powershell
+Export-PromptToJson -Path myprompt.json -prompt $prompt 
 ```
 
