@@ -78,16 +78,25 @@ role                           system
 content                        {[sentiment, 0.9]}
 role                           assistant
 ```
-And the Instructor expanded reads:
+The Instructor expanded reads:
 ```
-You are an API that analyzes the core intent of the text. 
-You provide your answer in a .JSON format in the following structure: { "intent": descriptive verb for intent } 
+You are an API that analyzes text sentiment. 
+You provide your answer in a .JSON format in the following structure: { "sentiment": 0.9 } 
 You only answer with the .JSON object. 
-You do not provide any reasoning why you did it that way. 
-The intent represents the one intent you extracted during your analysis. 
-If you can not extract the intent with a probability of 70% or more, you specify it with "unknown" in your response.
+You do not provide any reasoning why you did it that way.  
+The sentiment is a value between 0 - 1. 
+Where 1 is the most positive sentiment and 0 is the most negative. 
+If you can not extract the sentiment, you specify it with "unknown" in your response.
 ```
-The more examples (messages) are provided in a prompt, the more context the model has and the more predictable becomes its output. When using a prompt for training, we only need to make sure that we can include the last question to the prompt before we run into the `max_token` limit, whereas in chat-mode we should limit training to what is only necessary.
+
+And the first `assistant` message (created by me to specify the model how I expect the output):
+```
+{
+  "sentiment":  0.9
+}
+```
+
+The more examples (messages) are provided in a prompt, the more context the model has and the more predictable becomes its output. When using a prompt for training, we only need to make sure that we can include the last question of the user to the prompt before we run into the `max_token` limit, whereas in chat-mode we should limit training to what is only necessary.
 
 So, essentially we stitch together an object that represents a conversation between a `system`, the `assistant` and a `user`. Then we add the users question/message to the conversation prompt and send it to the model for completion.
 
