@@ -63,7 +63,7 @@ The `system` value defines the general behaviour of the assistant. This is also 
 - "A Pirate, that answers every request with Arrrr!"
 - "A villain in a James Bond Movie"
 
-With the prompt, you can generate context for the model. For example, we can use prompts to construct a conversation, or use prompts to "train" the model to behave even more as we want it to. 
+With the prompt, we can generate context for the model. For example, we can use prompts to construct a conversation, or use prompts to "train" the model to behave even more as we want it to. 
 
 When we use prompts for conversation, the prompt contains the whole conversation, so that the model has enough context in order to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In a conversation, we want to make sure we always incorporate the response from the model.
 
