@@ -93,7 +93,7 @@ With the prompt, we can generate context for the model. For example, we can use 
 
 When using prompts for chat conversations, the prompt contains the whole conversation, so that the model has enough context to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In contrast, when using prompts for training, the prompt is carefully crafted to show the model how it should behave and respond to certain inputs. This allows the model to learn and generalize from the examples in the prompt.
 
-When we use prompts for training, the prompt also contains a conversation, but this one was specifically crafted to show the model how it should behave. This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
+This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
 
 A trained character is a prompt that has been specifically designed to 'train' the OpenAI model to respond in a particular way. It typically includes a set of example questions or statements and the corresponding responses that the model should produce. By using a trained character, we can achieve more consistent and accurate responses from the model.
 
