@@ -56,18 +56,20 @@ As shown above, a message in a prompt can be assigned to three roles:
 - `assistant`
 - `user`
 
-With that, we can construct a chain of messages (a conversation) between an assistant, and a user. The `system` value defines the general behaviour of the assistant. With that, you can control what the model should behave and act like. For example: 
+With that, we can construct a chain of messages (a conversation) between an assistant, and a user. 
+
+The `system` value defines the general behaviour of the assistant. This is also often referred to as the "Instructor". With that, we can control what the model should behave and act like. For example: 
 - "You are a helpful AI"
 - "A Pirate, that answers every request with Arrrr!"
 - "A villain in a James Bond Movie"
 
-With the prompt, you can generate context for the model. For example, you can use prompts to construct a conversation, or you can use prompts to "train" the model to behave even more as you'd like. 
+With the prompt, you can generate context for the model. For example, we can use prompts to construct a conversation, or use prompts to "train" the model to behave even more as we want it to. 
 
 When we use prompts for conversation, the prompt contains the whole conversation, so that the model has enough context in order to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In a conversation, we want to make sure we always incorporate the response from the model.
 
-When we use prompts for training, the prompt also contains a conversation, but this one was specifically crafted to show the model how it should behave. This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt you can use. 
+When we use prompts for training, the prompt also contains a conversation, but this one was specifically crafted to show the model how it should behave. This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
 
-In both scenarios we add the users question/message to the prompt and send it to the model for completion.
+So, essentially we stitch together an object that represents a conversation between a `system`, the `assistant` and a `user`. Then we add the users question/message to the conversation prompt and send it to the model for completion.
 
 ## How to construct prompts
 TBD
