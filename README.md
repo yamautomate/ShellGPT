@@ -63,13 +63,13 @@ The `system` value defines the general behaviour of the assistant. This is also 
 - "A Pirate, that answers every request with Arrrr!"
 - "A villain in a James Bond Movie"
 
-With the prompt, we can generate context for the model. For example, we can use prompts to construct a conversation, or use prompts to "train" the model to behave even more as we want it to. 
+With the prompt, we can generate context for the model. For example, we can use prompts to construct a chat conversation, or use prompts to "train" the model to behave even more as we want it to. 
 
-When we use prompts for conversation, the prompt contains the whole conversation, so that the model has enough context in order to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In a conversation, we want to make sure we always incorporate the response from the model.
+When we use prompts for a chat conversation, the prompt contains the whole conversation, so that the model has enough context in order to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In a conversation, we want to make sure we always incorporate the response from the model.
 
 When we use prompts for training, the prompt also contains a conversation, but this one was specifically crafted to show the model how it should behave. This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
 
-For examnple, the prompt for the trained character "SentimentAnalysis" look like this:
+For example, the prompt for the trained character "SentimentAnalysis" look like this:
 ```
 Name                           Value
 ----                           -----
@@ -87,6 +87,7 @@ You do not provide any reasoning why you did it that way.
 The intent represents the one intent you extracted during your analysis. 
 If you can not extract the intent with a probability of 70% or more, you specify it with "unknown" in your response.
 ```
+The more examples (messages) are provided in a prompt, the more context the model has and the more predictable becomes its output. When using a prompt for training, we only need to make sure that we can include the last question to the prompt before we run into the `max_token` limit, whereas in chat-mode we should limit training to what is only necessary.
 
 So, essentially we stitch together an object that represents a conversation between a `system`, the `assistant` and a `user`. Then we add the users question/message to the conversation prompt and send it to the model for completion.
 
