@@ -10,6 +10,12 @@ function Invoke-CompletionAPI {
         .PARAMETER prompt
         The prompt (System.Object) to send to the API to act upon. Preferably generate a prompt (System.Object) with "New-CompletionAPIPrompt" and use that as the input for the parameter "-prompt"
 
+        .PARAMETER model
+        The model of the endpoint to use.
+
+        .PARAMETER stop
+        The stop instructor for the model. Tell is where it should generating output.
+
         .PARAMETER APIKey
         The API key for the OpenAI API to authenticate the request. This parameter is mandatory and accepts a string data type. This parameter is mandatory.
 
@@ -26,10 +32,12 @@ function Invoke-CompletionAPI {
         System.Object. Invoke-CompletionAPI returns the prompt, enriched with the repsonse from the API.
 
         .EXAMPLE
+        PS> $model = "gpt-3.5-turbo" 
+        PS> $stop = "\n"
         PS> $APIKey = "YOUR_API_KEY"
         PS> $temperature = 0.6
         PS> $max_tokens = 3500
-        PS> $prompt = New-CompletionAPIPrompt -query "What is the Capitol of Switzerland?" -role "user" -instructor "You are a helpful AI." -assistantReply "How can I help you today?"
+        PS> $prompt = New-CompletionAPIPrompt -query "What is the Capitol of Switzerland?" -role "user" -instructor "You are a helpful AI." -assistantReply "How can I help you today?" -model $model -stop $stop
         PS> $response = Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
         ChatGPT: The capital of Switzerland is Bern.
         PS> $response
@@ -53,15 +61,16 @@ function Invoke-CompletionAPI {
         [ValidateNotNullOrEmpty()]
         [System.Object]$prompt,  # The prompt to send to the API to act upon.
         [Parameter(Mandatory=$true)]
+        [string]$model,         # The model to use from the endpoint.
+        [Parameter(Mandatory=$true)]
+        [string]$stop,          # The stop instructor for the model. 
+        [Parameter(Mandatory=$true)]
         [string]$APIKey,        # The API key to authenticate the request.
         [Parameter(Mandatory=$true)]
         [double]$temperature,   # The temperature value to use for sampling.
         [Parameter(Mandatory=$true)]
         [int]$max_tokens       # The maximum number of tokens to generate in the response.
     )
-
-    $model = "gpt-3.5-turbo" 
-    $stop = "\n"
 
     #Building Request for API
     $headers = @{
@@ -103,7 +112,10 @@ function Invoke-CompletionAPI {
     }
     catch {
         # If there was an error, define an error message to the written.
-        $convertedResponseForOutput = "Unable to handle Error: "+$_.Exception.Message+" Retry query. If the error persists, consider exporting your current prompt and to continue later."
+        $errorToReport = $_.Exception.Message
+        $errorDetails = $_.ErrorDetails.Message
+        $convertedResponseForOutput = "Unable to handle Error: "+$errorToReport+" See Error details below. Retry query. If the error persists, consider exporting your current prompt and to continue later."
+
         $outputColor = "Red"
 
         #return prompt used as input, as we could not add the answer from the API.
@@ -113,6 +125,11 @@ function Invoke-CompletionAPI {
 
     #Output the text response.
     write-host "ChatGPT:"$convertedResponseForOutput -ForegroundColor $outputColor
+
+    if ($errorDetails)
+        {
+            write-host "ErrorDetails:"$errorDetails -ForegroundColor "Red"
+        }
 
     #return the new full prompt with the added text response from the API
     return $promptToReturn
@@ -346,6 +363,12 @@ function New-CompletionAPIConversation {
         .PARAMETER assistantReply
         The first, unseen reply by the model. This parameter can be used to help train the model and get expected output. This parameter is optional amd expects a string.
 
+        .PARAMETER model
+        The model of the endpoint to use.
+
+        .PARAMETER stop
+        The stop instructor for the model. Tell is where it should generating output.
+
         .PARAMETER APIKey
         The API key for the OpenAI API to authenticate the request. This parameter is mandatory and accepts a string data type. This parameter is mandatory.
 
@@ -362,10 +385,12 @@ function New-CompletionAPIConversation {
         System.Object. New-CompletionAPIConversation returns the prompt (a list of messages going back and forth between different parties), ready to be consumed by other functions.
 
         .EXAMPLE
+        PS> $model = "gpt-3.5-turbo" 
+        PS> $stop = "\n"
         PS> $APIKey = "YOUR_API_KEY"
         PS> $temperature = 0.6
         PS> $max_tokens = 3500
-        PS> $conversation = New-CompletionAPIConversation -Character SentimentAnalysis -query "Twitter is amazing" -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+        PS> $conversation = New-CompletionAPIConversation -Character SentimentAnalysis -query "Twitter is amazing" -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
         ChatGPT: { "sentiment": 0.875 }
         PS> $conversation
         Name                           Value
@@ -393,6 +418,10 @@ function New-CompletionAPIConversation {
         [string]$instructor,           # The instruction string to add to the prompt. Only use when you dont use a Character.
         [Parameter(Mandatory=$false)]  
         [string]$assistantReply,       # The first, unseen reply by the model. Can be used to help train it and get expected output. Only use when you dont use a Character.
+        [Parameter(Mandatory=$true)]
+        [string]$model,         # The model to use from the endpoint.
+        [Parameter(Mandatory=$true)]
+        [string]$stop,          # The stop instructor for the model. 
         [Parameter(Mandatory=$true)]  
         [string]$APIKey,               # API key for ChatGPT.
         [Parameter(Mandatory=$true)]  
@@ -404,14 +433,14 @@ function New-CompletionAPIConversation {
     if ($Character -eq $null)
     {
         $promptForAPI = New-CompletionAPIPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply
-        $promptToReturn = Invoke-CompletionAPI -Prompt $promptForAPI -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens
+        $promptToReturn = Invoke-CompletionAPI -Prompt $promptForAPI -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens -model $model -stop $stop
     }
     else 
     {
         $characterPrompt= Set-CompletionAPICharacter -mode $Character
         $promptForAPI = New-CompletionAPIPrompt -query $query -role "user" -previousMessages $characterPrompt
 
-        $promptToReturn = Invoke-CompletionAPI -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens  
+        $promptToReturn = Invoke-CompletionAPI -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
     }
 
     return $promptToReturn
@@ -436,6 +465,12 @@ function Add-CompletionAPIMessageToConversation {
         .PARAMETER  instructor
         The instruction (system) message to add to the prompt. This tells the model what it is ("A Helpful AI", "A Pirate, that answers every request with Arrrr!") This parameter is optional and expects a string.
 
+        .PARAMETER model
+        The model of the endpoint to use.
+
+        .PARAMETER stop
+        The stop instructor for the model. Tell is where it should generating output.
+
         .PARAMETER APIKey
         The API key for the OpenAI API to authenticate the request. This parameter is mandatory and accepts a string data type. This parameter is mandatory.
 
@@ -452,10 +487,12 @@ function Add-CompletionAPIMessageToConversation {
         System.Object. Add-CompletionAPIMessageToConversation returns the prompt (a list of messages going back and forth between different parties), ready to be consumed by other functions.
 
         .EXAMPLE
+        PS> $model = "gpt-3.5-turbo" 
+        PS> $stop = "\n"
         PS> $APIKey = "YOUR_API_KEY"
         PS> $temperature = 0.6
         PS> $max_tokens = 3500
-        PS> $previousMessages = New-CompletionAPIConversation -Character SentimentAnalysis -query "Twitter is amazing" -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+        PS> $previousMessages = New-CompletionAPIConversation -Character SentimentAnalysis -query "Twitter is amazing" -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $top
         PS> $conversation = Add-CompletionAPIMessageToConversation -query "I dont like Twitter" -previousMessages $conversation -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens 
         ChatGPT: { "sentiment": 0.875 }
         PS> $conversation
@@ -484,7 +521,11 @@ function Add-CompletionAPIMessageToConversation {
         [Parameter(Mandatory=$true)]  
         [System.Object]$previousMessages,  # An array of previous messages in the conversation.
         [Parameter(Mandatory=$false)]    
-        [string]$instructor,        # The instruction string to add to the prompt..
+        [string]$instructor,        # The instruction string to add to the prompt.
+        [Parameter(Mandatory=$true)]
+        [string]$model,         # The model to use from the endpoint.
+        [Parameter(Mandatory=$true)]
+        [string]$stop,          # The stop instructor for the model. 
         [Parameter(Mandatory=$true)]    
         [string]$APIKey,            # API key for ChatGPT.
         [Parameter(Mandatory=$true)]    
@@ -496,7 +537,7 @@ function Add-CompletionAPIMessageToConversation {
     $prompt = New-CompletionAPIPrompt -query $query -role "user" -previousMessages $previousMessages
 
     # Call the Invoke-ChatGPT function to get the response from the API.
-    $returnPromptFromAPI = Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens 
+    $returnPromptFromAPI = Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
     
     # Return the response from the API and the updated previous messages.
     return $returnPromptFromAPI
@@ -610,6 +651,12 @@ function Start-ChatGPTforPowerShell {
         If the user chooses to export the prompt, they must provide the full path to the prompt*.json file.
         If the user chooses to start a new conversation, the function calls itself recursively. If the user chooses to exit the conversation, the function ends.
 
+        .PARAMETER model
+        The model of the endpoint to use.
+
+        .PARAMETER stop
+        The stop instructor for the model. Tell is where it should generating output.
+
         .PARAMETER APIKey
         The API key for the OpenAI API to authenticate the request. This parameter is mandatory and accepts a string data type. This parameter is mandatory.
 
@@ -626,10 +673,12 @@ function Start-ChatGPTforPowerShell {
         Does not have any return values. Print the conversation on the console. 
 
         .EXAMPLE
+        PS> $model = "gpt-3.5-turbo" 
+        PS> $stop = "\n"
         PS> $APIKey = "YOUR_API_KEY"
         PS> $temperature = 0.6
         PS> $max_tokens = 3500
-        PS> Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+        PS> Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
         Do you want to restore an existing conversation? (enter 'y' or 'yes'): n
 
         Starting a new one...
@@ -664,6 +713,10 @@ function Start-ChatGPTforPowerShell {
     #>
 
     param (
+        [Parameter(Mandatory=$true)]
+        [string]$model,         # The model to use from the endpoint.
+        [Parameter(Mandatory=$true)]
+        [string]$stop,          # The stop instructor for the model. 
         [Parameter(Mandatory=$true)]    
         [string]$APIKey,          # API key for ChatGPT
         [Parameter(Mandatory=$true)]    
@@ -717,7 +770,7 @@ function Start-ChatGPTforPowerShell {
             }
         }
 
-        $conversationPrompt = New-CompletionAPIConversation -Character $Character -query (Read-Host "Your query for ChatGPT") -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+        $conversationPrompt = New-CompletionAPIConversation -Character $Character -query (Read-Host "Your query for ChatGPT") -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
 
         $previousMessages += $conversationPrompt
     }
@@ -749,13 +802,13 @@ function Start-ChatGPTforPowerShell {
             if ($newConvo -eq "y" -or $newConvo -eq "yes")
             {
                 # If the user wants to start a new conversation, call the New-ChatGPTConversation function recursively.
-                Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+                Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
             }
         }
         else
         {
             # Call the Add-ChatGPTMessageToConversation function to add the user's query to the conversation and get the response from ChatGPT.
-            $conversationPrompt = Add-CompletionAPIMessageToConversation -query $userQuery -previousMessages $previousMessages -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+            $conversationPrompt = Add-CompletionAPIMessageToConversation -query $userQuery -previousMessages $previousMessages -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
             $previousMessages = $conversationPrompt
         }
     }
