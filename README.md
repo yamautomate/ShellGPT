@@ -12,7 +12,7 @@ This module uses the endpoint `/v1/chat/completions` and it supprts the models a
 
 | Endpoint      | Model | Supported |
 | ------------- | ------------- |------------- |
-| /v1/chat/completions  | 	gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301  | Yes. `gpt-3.5-turbo` harcdoded for now. |
+| /v1/chat/completions  | 	gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301  | Yes. Tested with `gpt-3.5-turbo` |
 | /v1/completions	 | 	text-davinci-003, text-davinci-002, text-curie-001, text-babbage-001, text-ada-001, davinci, curie, babbage, ada  | Not yet. Will be used for calling a fine-tuned model |
 | /v1/fine-tunes | 		davinci, curie, babbage, ada  | Not yet. Will be used for training a fine tuned model |
 
@@ -38,15 +38,17 @@ Invoke-CompletionAPI              Function  CompletionAPI             Sends a pr
 Add-CompletionAPIMessageToConver… Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI".
 ```
 ## How to start the interactive ChatBot for PowerShell
-First we need to define the `$APIKey`, `$temperature` and `$max_token` parameters:
+First we need to define the `$model`, `$stop`, `$APIKey`, `$temperature` and `$max_token` parameters:
 ```powershell
+$model = "gpt-3.5-turbo" 
+$stop = "\n"
 $APIKey = "YOUR_API_KEY"
 $temperature = 0.6
 $max_tokens = 3500
 ```
-Then we can use `Start-ChatGPTforPowerShel` and pass along `$APIKey`, `$temperature` and `$max_token` we defined above:
+Then we can use `Start-ChatGPTforPowerShel` and pass along the parameters we defined above:
 ```powershell
-Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
 ```
 ## Understanding how the OpenAI API generates completions
 Autoregressive models like the ones used by OpenAI are trained to predict the probability distribution of the next token given the preceding tokens. For example, a language model can predict the next word in a sentence given the preceding words. 
@@ -208,13 +210,15 @@ Now we have a prompt ready we can send to the Completion API for actual completi
 
 But first, we need to declare a few variables for the API:
 ```powershell
+$model = "gpt-3.5-turbo" 
+$stop = "\n"
 $APIKey = "sk-......"
 $temperature = 0.6
 $max_tokens = 3500
 ```
 The we can use `Invoke-Completion` to call the API:
 ```powershell
-Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
 ```
 And ultimately we get our output. First, the extracted text in the response from the API and then the new prompt, where the response from API has been added to. If we'd assign the output from `Invoke-Completion` to a variable, we can use that again as the input for the next API Call if we want to have a conversation on a topic with the API.
 
