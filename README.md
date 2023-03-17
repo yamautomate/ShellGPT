@@ -1,14 +1,18 @@
 # PowerShell Open AI Completion API Module
-This PowerShell code provides a simple interface to the OpenAI "Chat Completion" API for the GPT model "gpt-3.5-turbo", allowing users to initiate and continue conversations with the GPT model using PowerShell. This module is made by the community and not OpenAI.
 
-Endpoint used: https://api.openai.com/v1/chat/completions
+The [`CompletionAPI`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, and more using the power of GPT.
+
+The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts or applications.
+The PowerShell OpenAI API Wrapper makes it easy to access the full potential of GPT-3 from the comfort of your command line.
+
+This module is made by the community and not OpenAI.
 
 ## Endpoint and Model Compatibility
 This module uses the endpoint `/v1/chat/completions` and it supprts the models as seen in the table below. Currently, the model used is harcdoded to `gpt-3.5-turbo`
 
 | Endpoint      | Model | Supported |
 | ------------- | ------------- |------------- |
-| /v1/chat/completions  | 	gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301  | Yes, harcdoded |
+| /v1/chat/completions  | 	gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301  | Yes. `gpt-3.5-turbo` harcdoded for now. |
 | /v1/completions	 | 	text-davinci-003, text-davinci-002, text-curie-001, text-babbage-001, text-ada-001, davinci, curie, babbage, ada  | Not yet. Will be used for calling a fine-tuned model |
 | /v1/fine-tunes | 		davinci, curie, babbage, ada  | Not yet. Will be used for training a fine tuned model |
 
@@ -146,10 +150,94 @@ Tokens are used as the unit for pricing and quotas for the OpenAI API. The speci
 To limit our spending, we can leverage the API Parameter `max_tokens`. With it, we can define what the maximum amount of tokens is we want to use. If the prompt and completion requires more tokens than what we have defined in `max_tokens`, the API returns an error.
 
 ## How to construct prompts using the CompletionAPI Module
-TBD
+We have several ways of how we can create prompts with the CompletionAPI module.
 
+The easiest and most customizable one is to use the `New-CompletionAPIPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
+
+Let's create a completely new prompt:
+```powershell
+$prompt = New-CompletionAPIPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
+```
+In the above example, we are creating a prompt with a user role, a query of "What is the Capital of France?", a system role with the message "You are a helpful AI.", and an assistant role with the message "Bonjour, how can I help you today?".
+
+We can also create a prompt with previous messages by passing in an array of messages as the "previousMessages" parameter. Here's an example:
+```powershell
+$previousMessages = @(
+    @{
+        role = "system"
+        content = "You are a helpful AI."
+    },
+    @{
+        role = "assistant"
+        content = "Hello! How can I help you today?"
+    }
+)
+
+$prompt = New-CompletionAPIPrompt -query "What is the Capital of France?" -role "user" -previousMessages $previousMessages
+```
+In this example, we are creating a prompt with a user role and a query of "What is the Capital of France?" along with two previous messages (system and assistant roles) in the conversation.
+
+## How to create a character using prompts
+We can use this to create specific training prompts for the model. 
+Here is an example, where we tell the model to act as a pirate:
+
+```powershell
+$previousMessages = @(
+    @{
+        role = "system"
+        content = "You are a helpful AI that was raised as a pirate. You append Awwwwr! to every respond you make."
+    },
+    @{
+        role = "assistant"
+        content = "Hello! How can I help you today? Awwwwr!"
+    },
+    @{
+        role = "user"
+        content = "What is the capitol of france?"
+    },
+    @{
+        role = "assistant"
+        content = "The capitol of france is Paris, Awwwwr!"
+    }
+)
+```
+We also include an example of an exchange between the user and assistant, so that the model can "learn" what we expect it to do.
+
+## How to pass our prompt to the API for completion
+Now we have a prompt ready we can send to the Completion API for actual completion. We do this by using the `Invoke-Completion` and passing it the prompt we just generated as an input.
+
+But first, we need to declare a few variables for the API:
+```powershell
+$APIKey = "sk-......"
+$temperature = 0.6
+$max_tokens = 3500
+```
+The we can use `Invoke-Completion` to call the API:
+```powershell
+Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+```
+And ultimately we get our output. First, the extracted text in the response from the API and then the new prompt, where the response from API has been added to. If we'd assign the output from `Invoke-Completion` to a variable, we can use that again as the input for the next API Call if we want to have a conversation on a topic with the API.
+
+```powershell
+ChatGPT: I am an AI language model designed to assist with various tasks and answer questions. Awwwwr!
+
+Name                           Value
+----                           -----
+role                           system
+content                        You are a helpful AI that was raised as a pirate. You append Awwwwr! to every respond you make.
+role                           assistant
+content                        Hello! How can I help you today? Awwwwr!
+role                           user
+content                        What is the capitol of france?
+role                           assistant
+content                        The capitol of france is Paris, Awwwwr!.
+role                           user
+content                        Who are you?
+role                           assistant
+content                        I am an AI language model designed to assist with various tasks and answer questions. Awwwwr!
+```
 
 # Function Documentation
-For detailled funtion documentation see the FUNCTIONS.md [here](https://github.com/yamautomate/PowerShell-OpenAI-API-Wrapper/blob/main/FUNCTIONS.md).
+For detailled function documentation see the FUNCTIONS.md [here](https://github.com/yamautomate/PowerShell-OpenAI-API-Wrapper/blob/main/FUNCTIONS.md).
 
 
