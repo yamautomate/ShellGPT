@@ -1,26 +1,30 @@
-# PowerShell Open AI Completion API Module
+# PowerGPT - A PowerShell Module for the APIs of OpenAI.
 
-The [`CompletionAPI`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, and more using the power of GPT.
+The [`PowerGPT`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
 
 The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts or applications.
-The PowerShell OpenAI API Wrapper makes it easy to access the full potential of GPT-3 from the comfort of your command line.
+PowerGPT makes it easy to access the full potential of GPT from the comfort of your command line.
 
 This module is made by the community and not OpenAI.
 
 ## Endpoint and Model Compatibility
-This module uses the endpoint `/v1/chat/completions` and it supprts the models as seen in the table below. Currently, the model used is harcdoded to `gpt-3.5-turbo`
+This module supports almost every endpoints from OpenAI as seen in the table below. 
 
-| Endpoint      | Model | Supported |
+| Endpoint      | Model | cmdlets |
 | ------------- | ------------- |------------- |
-| /v1/chat/completions  | 	gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301  | Yes. Tested with `gpt-3.5-turbo` |
-| /v1/completions	 | 	text-davinci-003, text-davinci-002, text-curie-001, text-babbage-001, text-ada-001, davinci, curie, babbage, ada  | Not yet. Will be used for calling a fine-tuned model |
-| /v1/fine-tunes | 		davinci, curie, babbage, ada  | Not yet. Will be used for training a fine tuned model |
+| /v1/chat/completions  | 	gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301  | `Invoke-OpenAICompletion` |
+| /v1/edits	 | 	text-davinci-edit-00, code-davinci-edit-001  | `New-OpenAIEdit` |
+| /v1/images/generations | 		DALL-E  | `New-OpenAIImage` |
+| /v1/embeddings | text-embedding-ada-002	| `New-OpenAIEmbedding` |
+| /v1/models | 		-  | `Get-OpenAIModels`, `Get-OppenAIModelById` |
+| /v1/files | 		-  | `Get-OpenAIFiles`, `Get-OpenAIFileById`, `Get-OpenAIFileContent`, `New-OpenAIFile`, `Remove-OpenAIFile`  |
+| /v1/fine-tunes | 		davinci, curie, babbage, ada  | `New-OpenAIFineTuneJob`, `Get-OpenAIFineTuneJobs`, `Get-OpenAIFineTuneJobById`,`Get-OpenAIFineTuneEvents`,`Remove-OpenAIFineTuneModel`,`Stop-OpenAIFineTuneJob` |
 
-## How to use the "Completion API" module
+## How to use the "PowerGPT" module
 To use the "Completion API" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
-Install-Module CompletionAPI
+Install-Module PowerGPT
 ```
 2. To check if it was installed successfully you can run `Get-Help`:
 ```powershell
