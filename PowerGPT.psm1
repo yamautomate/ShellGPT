@@ -1,5 +1,5 @@
 function Invoke-OpenAICompletion {
-    param (
+    param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [System.Object]$prompt,                 # The prompt to send to the API to act upon
@@ -35,12 +35,15 @@ function Invoke-OpenAICompletion {
         stop=$stop
     } 
 
+ 
     #Convert the whole Body to be JSON, so that API can interpret it
-    $RequestBody = $RequestBody | ConvertTo-Json
+    $RequestBody = $RequestBody | ConvertTo-Json -depth 3
+
+    $uri = 'https://api.openai.com/v1/chat/completions'
 
     $RestMethodParameter=@{
         Method='Post'
-        Uri ='https://api.openai.com/v1/chat/completions'
+        Uri = $uri
         body=$RequestBody
         Headers=$Headers
     }
@@ -66,10 +69,10 @@ function Invoke-OpenAICompletion {
         {
             Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) -ForegroundColor Yellow
         }
-       
+    
         #Append text output to prompt for returning it
         Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Creating new prompt with API response...") 
-        $prompt = New-OpenAICompletionPrompt -query $convertedResponseForOutput -role "assistant" -previousMessages $prompt
+        $prompt = New-OpenAICompletionPrompt -query $convertedResponseForOutput -role "assistant" -previousMessages $prompt -model $model
 
         Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | New Prompt is: "+($prompt | Out-String)) 
 
@@ -82,9 +85,10 @@ function Invoke-OpenAICompletion {
         $convertedResponseForOutput = "Unable to handle Error: "+$errorToReport+" See Error details below. Retry query. If the error persists, consider exporting your current prompt and to continue later."
 
         #return prompt used as input, as we could not add the answer from the API.
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt due to error: "+($prompt)) 
-        $promptToReturn = $prompt
-    }
+        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt due to error: "+($prompt))
+        $promptToReturn = $prompt 
+        
+        }
 
     if ($errorDetails)
         {
@@ -97,7 +101,7 @@ function Invoke-OpenAICompletion {
             Write-Host ("PowerGPT @ "+(Get-Date)+" | "+($convertedResponseForOutput)) -ForegroundColor Green
         }
     }
-
+    
     #return the new full prompt with the added text response from the API
     return $promptToReturn
 }
@@ -108,7 +112,7 @@ function New-OpenAICompletionPrompt {
         [string]$query,                                                                              # The user's query to add to the prompt.
         [Parameter(Mandatory=$false)]    
         [ValidateSet("system", "assistant", "user")] 
-        [string]$role = "user",                                                                               # The role to add to the prompt. 
+        [string]$role = "user",                                                                       # The role to add to the prompt. 
         [Parameter(Mandatory=$false)]    
         [string]$instructor = "You are ChatGPT, a helpful AI Assistant.",                            # The instruction string to add to the prompt.
         [Parameter(Mandatory=$false)]    
@@ -116,7 +120,9 @@ function New-OpenAICompletionPrompt {
         [Parameter(Mandatory=$false)]    
         [System.Object]$previousMessages,                                                             # An array of previous messages in the conversation.
         [Parameter(Mandatory=$false)]    
-        [string]$filePath                                                                                # An array of previous messages in the conversation.
+        [string]$filePath,                                                                                # An array of previous messages in the conversation.
+        [Parameter(Mandatory=$false)]    
+        [string]$model      
         )
 
     if ($filePath)
@@ -184,6 +190,7 @@ function New-OpenAICompletionPrompt {
         }
     }
 
+
     if ($previousMessages)
     {
         
@@ -213,22 +220,28 @@ function New-OpenAICompletionPrompt {
         )
 
     }
+    
 
     return $promptToReturn
+    
 }
 
 function Set-OpenAICompletionCharacter {
     param (
         [Parameter(Mandatory=$true)]  
         [ValidateSet("Chat", "SentimentAndTickerAnalysis", "SentimentAnalysis", "IntentAnalysis","IntentAndSubjectAnalysis")]
-        $mode
+        $mode,
+        [Parameter(Mandatory=$false)] 
+        $instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [Parameter(Mandatory=$false)] 
+        $assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
     )
 
     switch ($mode)
     {
         "Chat" {
-            $instructor = "You are a helpful AI. You answer as concisely as possible."
-            $assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
+            $instructor = $instructor
+            $assistantReply = $assistantReply
         }
 
         "SentimentAndTickerAnalysis" {
@@ -290,10 +303,10 @@ function New-OpenAICompletionConversation {
         [string]$query,                         # The user's query to add to the prompt.
         [Parameter(Mandatory=$true)]  
         [string]$APIKey,                        # API key for ChatGPT.
-        [Parameter(Mandatory=$false)]  
-        [string]$instructor,                    # The instruction string to add to the prompt. Only use when you dont use a Character.
-        [Parameter(Mandatory=$false)]  
-        [string]$assistantReply,                # The first, unseen reply by the model. Can be used to help train it and get expected output. Only use when you dont use a Character.
+        [Parameter(Mandatory=$false)] 
+        $instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [Parameter(Mandatory=$false)] 
+        $assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?",
         [Parameter(Mandatory=$false)]
         [string]$model = "gpt-3.5-turbo",       # The model to use from the endpoint.
         [Parameter(Mandatory=$false)]
@@ -318,25 +331,25 @@ function New-OpenAICompletionConversation {
         if ($filePath)
         {   Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
             Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Generating prompt... ") 
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -filePath $filePath
+            $promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -filePath $filePath -model $model
         }
         else {
             Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply
+            $promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -model $model
         }
         Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Calling OpenAI Completion API with prompt...") 
         #$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
     }
     else 
     {
-        $characterPrompt= Set-OpenAICompletionCharacter -mode $Character
+        $characterPrompt= Set-OpenAICompletionCharacter -mode $Character -instructor $instructor -assistantReply $assistantReply
         If ($filePath)
         {
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -filePath $filePath 
+            $promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -filePath $filePath -model $model 
         }
 
         else {
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt
+            $promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -model $model 
         }
         
         #$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
@@ -372,10 +385,10 @@ function Add-OpenAICompletionMessageToConversation {
 
     if ($filePath)
     {
-        $prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -filePath $filePath
+        $prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -filePath $filePath -model $model
     }
     else {
-        $prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages
+        $prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -model $model
     }
 
     # Call the Invoke-ChatGPT function to get the response from the API.
@@ -1283,7 +1296,6 @@ function Export-OpenAIPromptToJson {
     return $prompt
 }
 
-
 function New-OpenAIEmbedding {
     param (
         [Parameter(Mandatory=$true)]
@@ -1425,7 +1437,10 @@ function Get-PowerGPTHelpMessage {
     Write-Host ("PowerGPT @ "+(Get-Date)+" | Supported file types are: .txt, .pdf, .csv, .json") -ForegroundColor DarkMagenta
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
     Write-Host ("PowerGPT @ "+(Get-Date)+" | Example: file | C:\Users\Yanik\test.txt | Summarize this:") -ForegroundColor DarkGray
+    Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
     Write-Host ("PowerGPT @ "+(Get-Date)+" | This will summarize the content in the file 'test.txt'") -ForegroundColor DarkGray
+    Write-Host ("PowerGPT @ "+(Get-Date)+" | Example: file | C:\Users\Yanik\test.pdf | Summarize this:") -ForegroundColor DarkGray
+    Write-Host ("PowerGPT @ "+(Get-Date)+" | This will create a .txt file with the content of the .PDF, read it and summarize the content in the file 'test.txt'") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
     Write-Host ("PowerGPT @ "+(Get-Date)+" | There are a few other commands available. ") -ForegroundColor DarkMagenta
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
@@ -1441,111 +1456,35 @@ function Get-PowerGPTHelpMessage {
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
 
     Write-Host ("PowerGPT @ "+(Get-Date)+" | Stop PowerGPT and export the prompt: ") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | quit | export") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
 }
 
 function Start-PowerGPT {
-    <#
-        .SYNOPSIS
-        This PowerShell function starts a conversation with the ChatGPT API, allowing users to interact with the model.
-
-        .DESCRIPTION
-        The function prompts the user to either start a new conversation or restore an existing one. 
-        If the user chooses to restore an existing conversation, they must provide the full path to the prompt*.json file.
-        If the user chooses to start a new conversation, the function prompts the user to select the character that the model should assume.
-        The available options are:
-
-            - Chat: Instructed to be a helpful AI assistant
-            - SentimentAnalysis: Analyzes the sentiment of a text and responds in a defined .JSON format
-            - SentimentAndTickerAnalysis: Analyzes the sentiment of a text and extracts the ticker of an asset that mentioned within and responds in a defined .JSON format
-            - IntentAnalysis: Analyzes the intent of a text and responds in a defined .JSON format
-            - IntentAndSubjectAnalysis Analyzes the intent and subject of a text and responds in a defined .JSON format
-
-        The user must then enter their query for ChatGPT. The function adds the query to the conversation and retrieves the response from ChatGPT. 
-        The conversation continues until the user enters 'q' or 'quit'. 
-        At that point, the function prompts the user to export the current prompt for future use and/or start a new conversation. 
-        If the user chooses to export the prompt, they must provide the full path to the prompt*.json file.
-        If the user chooses to start a new conversation, the function calls itself recursively. If the user chooses to exit the conversation, the function ends.
-
-        .PARAMETER model
-        The model of the endpoint to use.
-
-        .PARAMETER stop
-        The stop instructor for the model. Tell is where it should generating output.
-
-        .PARAMETER APIKey
-        The API key for the OpenAI API to authenticate the request. This parameter is mandatory and accepts a string data type. This parameter is mandatory.
-
-        .PARAMETER temperature
-        The temperature value to use for sampling. This parameter is mandatory and accepts a double data type. This parameter is mandatory.
-
-        .PARAMETER max_tokens
-        The maximum number of tokens to generate in the response. This parameter is mandatory and accepts an integer data type. This parameter is mandatory.
-
-        .INPUTS
-        None. You cannot pipe objects to Add-CompletionAPIMessageToConversation.
-
-        .OUTPUTS
-        Does not have any return values. Print the conversation on the console. 
-
-        .EXAMPLE
-        PS> $model = "gpt-3.5-turbo" 
-        PS> $stop = "\n"
-        PS> $APIKey = "YOUR_API_KEY"
-        PS> $temperature = 0.6
-        PS> $max_tokens = 3500
-        PS> Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
-        Do you want to restore an existing conversation? (enter 'y' or 'yes'): n
-
-        Starting a new one...
-
-        To stop the current conversation enter 'q' or 'quit' in the query
-
-        Select the Character the Model should assume:
-        1: Chat
-        2: Ticker and Sentiment Analysis
-        3: Sentiment Analysis
-        4: Intent Analysis
-        5: Intent & Topic Analysis: 1
-
-        Your query for ChatGPT: Hello there! What is the capitol of Switzerland?
-        ChatGPT: The capital of Switzerland is Bern.
-
-        Your query for ChatGPT: How many inhabitants does it have?
-        ChatGPT: As of 2021, the estimated population of Bern is around 133,000 inhabitants.
-
-        Your query for ChatGPT: Who governs it?
-        ChatGPT: The government of Bern is composed of a city council, which is made up of five members, and a mayor, who serves as the head of the council. The council is responsible for the administration of the city, including public services, infrastructure, and social programs. The city council members are elected by the people of Bern for a term of four years.
-
-        Your query for ChatGPT: q
-        Do you want to export the current prompt for future use? (enter 'y' or 'yes'): y
-
-        Initializing export..
-        Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: bern.json
-        Do you want to start a new conversation (enter 'y' or 'yes'): n
-
-        .LINK
-        GitHub Repo: https://github.com/yamautomate/PowerShell-OpenAI-API-Wrapper
-    #>
-
     param (
         [Parameter(Mandatory=$true)]    
-        [string]$APIKey,                        # API key for ChatGPT
+        [string]$APIKey,                        
         [Parameter(Mandatory=$false)]
-        [string]$model = "gpt-3.5-turbo",       # The model to use from the endpoint.
+        [string]$model = "gpt-3.5-turbo",       
         [Parameter(Mandatory=$false)]
-        [string]$stop = "\n",                   # The stop instructor for the model. 
+        [string]$stop = "\n",                    
         [Parameter(Mandatory=$false)]
-        [double]$temperature = 0.4,             # The temperature value to use for sampling.
+        [double]$temperature = 0.4,             
         [Parameter(Mandatory=$false)]
-        [int]$max_tokens = 900,                  # The maximum number of tokens to generate in the response.
-        [bool]$ShowOutput = $false,                    # The maximum number of tokens to generate in the response.
+        [int]$max_tokens = 900,                 
+        [bool]$ShowOutput = $false,                    
         [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false                 # The maximum number of tokens to generate in the response.
+        [bool]$ShowTokenUsage = $false,                 
+        [Parameter(Mandatory=$false)]
+        [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [Parameter(Mandatory=$false)] 
+        [string]$assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
     )
 
     Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Initializing... ") 
+    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used Model is : "+($model)) 
+    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used stop instructor is : "+($stop))
+    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used temperature is: "+($temperature))  
+    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used max_tokens is: "+($max_tokens)) 
 
     $contiueConversation = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Do you want to restore an existing conversation? (enter 'y' or 'yes'): ") -ForegroundColor yellow -NoNewLine; Read-Host) 
 
@@ -1564,7 +1503,6 @@ function Start-PowerGPT {
         # Initialize the previous messages array.
         $previousMessages = @()
 
-        #select the character
         $option = Read-Host ("PowerGPT @ "+(Get-Date)+" | Select the Character the Model should assume:`n1: Chat`n2: Ticker and Sentiment Analysis`n3: Sentiment Analysis`n4: Intent Analysis`n5: Intent & Topic Analysis`nPowerGPT @ "+(Get-Date)+" | Enter the according number of the character you'd like")
 
         switch ($option) {
@@ -1585,10 +1523,12 @@ function Start-PowerGPT {
             }
 
             default {
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | Invalid option selected.")
+                $Character = "Chat"
+                Write-Host ("PowerGPT @ "+(Get-Date)+" | Invalid option selected.") -ForegroundColor Yellow 
             }
         }
-        Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Selected Character is: "+($Character)) 
+        
+        Write-Host ("PowerGPT @ "+(Get-Date)+" | Selected Character is: "+($Character)) -ForegroundColor Yellow 
         $InitialQuery = Read-Host ("PowerGPT @ "+(Get-Date)+" | Your query for ChatGPT or commands for PowerGPT")
 
         Write-Verbose ("PowerGPT @ "+(Get-Date)+" | InitialQuery is: "+($InitialQuery)) 
@@ -1605,7 +1545,7 @@ function Start-PowerGPT {
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Starting Conversation...") 
 
-                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
 
             }
@@ -1622,7 +1562,7 @@ function Start-PowerGPT {
                 $conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
             default {
-                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
             }
         }
