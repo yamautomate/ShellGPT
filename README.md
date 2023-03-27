@@ -20,8 +20,17 @@ This module supports almost every endpoints from OpenAI as seen in the table bel
 | /v1/files | 		-  | `Get-OpenAIFiles`, `Get-OpenAIFileById`, `Get-OpenAIFileContent`, `New-OpenAIFile`, `Remove-OpenAIFile`  |
 | /v1/fine-tunes | 		davinci, curie, babbage, ada  | `New-OpenAIFineTuneJob`, `Get-OpenAIFineTuneJobs`, `Get-OpenAIFineTuneJobById`,`Get-OpenAIFineTuneEvents`,`Remove-OpenAIFineTuneModel`,`Stop-OpenAIFineTuneJob` |
 
+## Requirements
+PowerGPT requires the following:
+
+- PowerShell 5.1 or higher
+- An OpenAI API key
+
+## Installation
+
+
 ## How to use the "PowerGPT" module
-To use the "Completion API" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
+To use the "PowerGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
 Install-Module PowerGPT
