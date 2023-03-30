@@ -172,7 +172,7 @@ function New-OpenAICompletionPrompt {
         }
     }
 
-    #Remove characters the API can not interpret:
+    <#Remove characters the API can not interpret:
     $query = $query -replace '(?m)^\s+',''
     $query = $query -replace '\r',''
     $query = $query -replace '●',''
@@ -183,6 +183,13 @@ function New-OpenAICompletionPrompt {
     $query = $query -replace 'ü',"ue"
     $query = $query -replace 'ß',"ss"
     $query = $query -replace '\u00A0', ' '
+
+    #>
+    
+    $iso = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+    $bytes = $iso.GetBytes($query)
+    $query = [System.Text.Encoding]::Default.GetString($bytes)
+
 
     if ($previousMessages)
     {
@@ -1308,6 +1315,7 @@ function Export-OpenAIPromptToJson {
     )
 
     $prompt | ConvertTo-Json | Out-File -Encoding utf8 -FilePath $path
+    
 
     return $prompt
 }
@@ -1566,7 +1574,6 @@ function Start-PowerGPT {
 
                 if ($InitialQuery.Contains("| out |"))
                     {
-                        Write-Host "Yep contains out"
                         $filePathOut = (($InitialQuery.split("|"))[4]).TrimStart(" ")
                         $filePathOut = $filePathOut.TrimEnd(" ")
                         Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
@@ -1594,7 +1601,29 @@ function Start-PowerGPT {
                 [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
             default {
-                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+
+                if ($InitialQuery.contains("| out |"))
+                {
+                    $filePathOut = (($InitialQuery.split("|"))[2]).TrimStart(" ")
+                    $filePathOut = $filePathOut.TrimEnd(" ")
+                    $InitialQuery = (($InitialQuery.split("|"))[0]).TrimStart(" ")
+
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                    Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+    
+                    try {
+                        ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+    
+                    }
+                    catch {
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                    }
+                }
+                else
+                {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                }    
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
             }
         }
@@ -1667,8 +1696,32 @@ function Start-PowerGPT {
                 Write-Host ("PowerGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
                 [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
-            default {
-                [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+            default {            
+                if ($userQuery.contains("| out |"))
+                {
+                    $filePathOut = (($InitialQuery.split("|"))[2]).TrimStart(" ")
+                    $filePathOut = $filePathOut.TrimEnd(" ")
+                    $UserQuery = (($UserQuery.split("|"))[0]).TrimStart(" ")
+
+                    [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+
+                    Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+    
+                    try {
+                        ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+    
+                    }
+                    catch {
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                    }
+
+                }
+                else
+                {
+                    [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                }
+
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
             }
         }
@@ -1676,3 +1729,5 @@ function Start-PowerGPT {
         [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 }
+
+$APIKey = "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"
