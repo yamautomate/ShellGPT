@@ -34,7 +34,7 @@ Install-Module PowerGPT
 ```
 2. To check if it was installed successfully you can run `Get-Help`:
 ```powershell
-Get-Help CompletionAPI
+Get-Help PowerGPT
 ```
 
 The Output should list all available cmldets/functions:
