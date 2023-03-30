@@ -2,7 +2,7 @@ function Invoke-OpenAICompletion {
     param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [System.Object]$prompt,                 # The prompt to send to the API to act upon
+        [System.Collections.ArrayList]$prompt,                 # The prompt to send to the API to act upon
         [Parameter(Mandatory=$true)]
         [string]$APIKey,                        # The API key to authenticate the request.
         [Parameter(Mandatory=$false)]
@@ -62,48 +62,44 @@ function Invoke-OpenAICompletion {
         $tokenUsage = $APIresponse.usage
 
         Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Extracted Output: "+($convertedResponseForOutput)) 
-
         Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) 
+
+
+    
+        #Append text output to prompt for returning it
+        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Creating new prompt with API response...") 
+        [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $convertedResponseForOutput -role "assistant" -previousMessages $prompt -model $model
+
+        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | New Prompt is: "+($prompt | Out-String)) 
 
         If ($ShowTokenUsage -eq $true)
         {
             Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) -ForegroundColor Yellow
         }
-    
-        #Append text output to prompt for returning it
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Creating new prompt with API response...") 
-        $prompt = New-OpenAICompletionPrompt -query $convertedResponseForOutput -role "assistant" -previousMessages $prompt -model $model
 
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | New Prompt is: "+($prompt | Out-String)) 
-
-        $promptToReturn = $prompt
-    }
-    catch {
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Error: "+($_.Exception.Message)) 
-        $errorToReport = $_.Exception.Message
-        $errorDetails = $_.ErrorDetails.Message
-        $convertedResponseForOutput = "Unable to handle Error: "+$errorToReport+" See Error details below. Retry query. If the error persists, consider exporting your current prompt and to continue later."
-
-        #return prompt used as input, as we could not add the answer from the API.
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt due to error: "+($prompt))
-        $promptToReturn = $prompt 
-        
-        }
-
-    if ($errorDetails)
-        {
-            Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Error Details are present: "+($errorDetails)) 
-            write-Host "ErrorDetails:"$errorDetails -ForegroundColor "Red"
-        }
-    else {
         if ($ShowOutput)
         {
             Write-Host ("PowerGPT @ "+(Get-Date)+" | "+($convertedResponseForOutput)) -ForegroundColor Green
         }
+
+        [System.Collections.ArrayList]$promptToReturn = $prompt
     }
-    
-    #return the new full prompt with the added text response from the API
-    return $promptToReturn
+    catch {
+        $errorDetails = $_.ErrorDetails.Message
+
+        Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Unable to handle Error "+($_.Exception.Message)+"See Error details below. Retry query. If the error persists, consider exporting your current prompt and to continue later.") -ForegroundColor "Red"
+        Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Error Details: "+($errorDetails)) -ForegroundColor "Red"
+
+        if ($errorDetails.contains("invalid JSON: 'utf-8'")) {
+            Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Your prompt seems to contain characters that can be misinterpreted in utf-8 encoding. Remove those characters and try again."+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
+            }
+
+        [System.Collections.ArrayList]$prompt.RemoveAt($prompt.count-1) 
+        [System.Collections.ArrayList]$promptToReturn = [System.Collections.ArrayList]$prompt
+        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt, without the last query due to error and to prevent the prompt from becoming unusable: "+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
+        }
+
+    return [System.Collections.ArrayList]$promptToReturn
 }
 
 function New-OpenAICompletionPrompt {
@@ -118,7 +114,7 @@ function New-OpenAICompletionPrompt {
         [Parameter(Mandatory=$false)]    
         [string]$assistantReply = "Hello! I'm ChatGPT, a GPT Model. How can I assist you today?",    # The first, unseen reply by the model. Can be used to help train it and get expected output.
         [Parameter(Mandatory=$false)]    
-        [System.Object]$previousMessages,                                                             # An array of previous messages in the conversation.
+        [System.Collections.ArrayList]$previousMessages,                                                             # An array of previous messages in the conversation.
         [Parameter(Mandatory=$false)]    
         [string]$filePath,                                                                                # An array of previous messages in the conversation.
         [Parameter(Mandatory=$false)]    
@@ -160,20 +156,6 @@ function New-OpenAICompletionPrompt {
             Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Trying to read content of file using UTF-8 encoding...") 
             $filecontent = Get-Content -Path $filePath -Raw -Encoding utf8
             Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File content extracted...") 
-
-            #Remove characters the API can not interpret:
-            #$filecontent = $filecontent -replace '\n',''
-            $filecontent = $filecontent -replace '(?m)^\s+',''
-            $filecontent = $filecontent -replace '\r',''
-            $filecontent = $filecontent -replace '●',''
-            $filecontent = $filecontent -replace '“',"'"
-            $filecontent = $filecontent -replace '”',"'"
-            $filecontent = $filecontent -replace 'ä',"ae"
-            $filecontent = $filecontent -replace 'ö',"oe"
-            $filecontent = $filecontent -replace 'ü',"ue"
-            $filecontent = $filecontent -replace 'ß',"ss"
-            $filecontent = $filecontent -replace '\u00A0', ' '
-
             $query = "$query $filecontent" 
         }
         catch {
@@ -190,21 +172,37 @@ function New-OpenAICompletionPrompt {
         }
     }
 
+    #Remove characters the API can not interpret:
+    $query = $query -replace '(?m)^\s+',''
+    $query = $query -replace '\r',''
+    $query = $query -replace '●',''
+    $query = $query -replace '“',"'"
+    $query = $query -replace '”',"'"
+    $query = $query -replace 'ä',"ae"
+    $query = $query -replace 'ö',"oe"
+    $query = $query -replace 'ü',"ue"
+    $query = $query -replace 'ß',"ss"
+    $query = $query -replace '\u00A0', ' '
 
     if ($previousMessages)
     {
-        
-        $previousMessages += @{
+        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Previous Messages are present: "+($previousMessages | Out-String))
+
+        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Adding new query: "+($query)+" for role: "+($role)+" to previous Messages")
+
+        $previousMessages.Add(@{
             role = $role
             content = $query
-        }
+        }) | Out-Null
 
-        $promptToReturn = $previousMessages
+        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Added new query to previousmessages")
+
+        [System.Collections.ArrayList]$promptToReturn = [System.Collections.ArrayList]$previousMessages 
     }
 
     else 
     {
-        $promptToReturn = @(
+        [System.Collections.ArrayList]$promptToReturn = @(
             @{
                 role = "system"
                 content = $instructor
@@ -218,12 +216,9 @@ function New-OpenAICompletionPrompt {
                 content = $query
             }
         )
-
     }
-    
 
     return $promptToReturn
-    
 }
 
 function Set-OpenAICompletionCharacter {
@@ -280,7 +275,7 @@ function Set-OpenAICompletionCharacter {
         }
     }
 
-    $promptToReturn = @(
+    [System.Collections.ArrayList]$promptToReturn = @(
         @{
             role = "system"
             content = $instructor
@@ -291,7 +286,7 @@ function Set-OpenAICompletionCharacter {
         }
     )
     
-    return $promptToReturn
+    return [System.Collections.ArrayList]$promptToReturn
 }
 
 function New-OpenAICompletionConversation {
@@ -324,39 +319,52 @@ function New-OpenAICompletionConversation {
     )
 
     Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Initializing new conversation...")
+
     if ($Character -eq $null)
     {
         Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character is not provided.") 
         
         if ($filePath)
-        {   Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Generating prompt... ") 
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -filePath $filePath -model $model
+        {   
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
+
+            [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -filePath $filePath -model $model
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))  
         }
         else {
             Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -model $model
+
+            [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -model $model
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))   
         }
-        Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Calling OpenAI Completion API with prompt...") 
-        #$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -Model $model -temperature $temperature -stop $stop -max_tokens $max_tokens -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
     }
     else 
     {
-        $characterPrompt= Set-OpenAICompletionCharacter -mode $Character -instructor $instructor -assistantReply $assistantReply
+        Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character is provided: "+$Character) 
+
+        [System.Collections.ArrayList]$characterPrompt= Set-OpenAICompletionCharacter -mode $Character -instructor $instructor -assistantReply $assistantReply
+        Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character prompt is: ") 
         If ($filePath)
         {
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -filePath $filePath -model $model 
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
+
+            [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -filePath $filePath -model $model
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))  
         }
 
         else {
-            $promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -model $model 
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
+
+            [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -model $model
+            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))   
         }
         
-        #$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
     }
-    $promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
-
-    return $promptToReturn
+    
+    Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Calling OpenAI Completion API with prompt...") 
+    [System.Collections.ArrayList]$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+        
+    return [System.Collections.ArrayList]$promptToReturn
 }
 
 function Add-OpenAICompletionMessageToConversation {
@@ -364,7 +372,7 @@ function Add-OpenAICompletionMessageToConversation {
         [Parameter(Mandatory=$true)]  
         [string]$query,                         # The user's query to be added to the conversation.
         [Parameter(Mandatory=$true)]  
-        [System.Object]$previousMessages,       # An array of previous messages in the conversation.
+        [System.Collections.ArrayList]$previousMessages,       # An array of previous messages in the conversation.
         [Parameter(Mandatory=$true)]    
         [string]$APIKey,                        # API key for ChatGPT
         [Parameter(Mandatory=$false)]
@@ -385,17 +393,25 @@ function Add-OpenAICompletionMessageToConversation {
 
     if ($filePath)
     {
-        $prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -filePath $filePath -model $model
+        Write-Verbose ("PowerGPT-Add-OpenAICompletionMessageToConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath | Out-String))  
+        [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -filePath $filePath -model $model
     }
     else {
-        $prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -model $model
+        Write-Verbose ("PowerGPT-Add-OpenAICompletionMessageToConversation @ "+(Get-Date)+" | FilePath is not provided")
+        [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -model $model
     }
 
     # Call the Invoke-ChatGPT function to get the response from the API.
-    $returnPromptFromAPI = Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+    
+    try {
+        [System.Collections.ArrayList]$returnPromptFromAPI = Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+    }
+    catch {
+        [System.Collections.ArrayList]$returnPromptFromAPI = $prompt }
+
     
     # Return the response from the API and the updated previous messages.
-    return $returnPromptFromAPI
+    return [System.Collections.ArrayList]$returnPromptFromAPI
     
 }
 
@@ -1492,8 +1508,8 @@ function Start-PowerGPT {
     {
         Get-PowerGPTHelpMessage
         $importPath = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file you want to continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
-        $importedPrompt = Import-OpenAIPromptFromJson -Path $importPath
-        $previousMessages = $importedPrompt
+        [System.Collections.ArrayList]$importedPrompt = Import-OpenAIPromptFromJson -Path $importPath
+        [System.Collections.ArrayList]$previousMessages = $importedPrompt
     }
     else 
     {
@@ -1501,7 +1517,7 @@ function Start-PowerGPT {
         Get-PowerGPTHelpMessage
 
         # Initialize the previous messages array.
-        $previousMessages = @()
+        [System.Collections.ArrayList]$previousMessages = @()
 
         $option = Read-Host ("PowerGPT @ "+(Get-Date)+" | Select the Character the Model should assume:`n1: Chat`n2: Ticker and Sentiment Analysis`n3: Sentiment Analysis`n4: Intent Analysis`n5: Intent & Topic Analysis`nPowerGPT @ "+(Get-Date)+" | Enter the according number of the character you'd like")
 
@@ -1545,9 +1561,25 @@ function Start-PowerGPT {
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Starting Conversation...") 
 
-                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
 
+                if ($InitialQuery.Contains("| out |"))
+                    {
+                        Write-Host "Yep contains out"
+                        $filePathOut = (($InitialQuery.split("|"))[4]).TrimStart(" ")
+                        $filePathOut = $filePathOut.TrimEnd(" ")
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+
+                        try {
+                            ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
+                            Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+    
+                        }
+                        catch {
+                            Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                        }
+                    }
             }
             "^quit \|.*" {
                 Write-Host ("PowerGPT @ "+(Get-Date)+" | PowerGPT is exiting now...") -ForegroundColor Yellow
@@ -1559,15 +1591,15 @@ function Start-PowerGPT {
             }
             "^\s*$" {
                 Write-Host ("PowerGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
-                $conversationPrompt = Set-OpenAICompletionCharacter $Character
+                [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
             default {
-                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
             }
         }
 
-        $previousMessages += $conversationPrompt
+        [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 
     # Initialize the continue variable.
@@ -1589,10 +1621,28 @@ function Start-PowerGPT {
 
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Starting Conversation...") 
 
-                $conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
-                Write-Host $conversationPrompt[($conversationPrompt.count)-1].content -ForegroundColor Green
+                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
+
+                if ($userQuery.Contains("| out |"))
+                {
+
+                    $filePathOut = (($UserQuery.split("|"))[4]).TrimStart(" ")
+                    $filePathOut = $filePathOut.TrimEnd(" ")
+                    Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+
+                    try {
+                        ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+
+                    }
+                    catch {
+                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                    }
+                    
+                }
+
             }
             "^newconvo \|.*" {
                 Start-PowerGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
@@ -1615,13 +1665,14 @@ function Start-PowerGPT {
             }
             "^\s*$" {
                 Write-Host ("PowerGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
-                $conversationPrompt = Set-OpenAICompletionCharacter $Character
+                [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
             default {
-                $conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
-                Write-Host $conversationPrompt[($conversationPrompt.count)-1].content -ForegroundColor Green
+                [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
             }
         }
-        $previousMessages = $conversationPrompt
+
+        [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 }
