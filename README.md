@@ -50,18 +50,69 @@ Add-CompletionAPIMessageToConver… Function  CompletionAPI             This is 
 
 
 ## How to start the interactive ChatBot for PowerShell
-First we need to define the `$model`, `$stop`, `$APIKey`, `$temperature` and `$max_token` parameters:
+
+We need to define the `$APIKey`, we obtained earlier first: 
 ```powershell
+$APIKey = "YOUR_API_KEY"
+```
+
+Then we can use `Start-PowerGPT` to start the command-line based ChatBot using the default values:
+```powershell
+Start-PowerGPT -APIKey $APIKey
+```
+The default values are:
+
+```
 $model = "gpt-3.5-turbo" 
 $stop = "\n"
-$APIKey = "YOUR_API_KEY"
-$temperature = 0.6
-$max_tokens = 3500
+$temperature = 0.4
+$max_tokens = 900
 ```
-Then we can use `Start-ChatGPTforPowerShel` and pass along the parameters we defined above:
+
+
+If you want to launch `PowerGPT` with your own parameter values, you can define them and call `Start-PowerGPT` with all params you wish to use:
+
 ```powershell
-Start-ChatGPTforPowerShell -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
+$model = "gpt-3" 
+$stop = "."
+$temperature = 0.1
+$max_tokens = 200
 ```
+
+Then we can use `Start-PowerGPT` and pass along the parameters we defined above:
+```powershell
+Start-PowerGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
+```
+## How-To use the ChatBot
+When launched, you are asked if you want to continue an existing conversation or a new one. If you have exported a prompt earlier, you can continue where left off by importing it. If you start a new conversation, you can pick the character. Chat provides the ChatBot experience.
+
+You can now enter your prompt. You can also use the following commands:
+- file |
+- out | 
+- export |
+- quit |
+
+### "file | " command
+Using the "file |" command, you can tell the ChatBot to parse a local file and use it within the prompt. That way you can ask it questions about a local pdf, csv, json or txt file.
+
+In the example below we ask it to summarize the content of the file "test.txt":
+
+```
+PowerGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for PowerGPT: file | test.txt | Summarize this:
+```
+The CompletionAPI responds:
+```
+CompletionAPI @ 03/30/2023 20:16:19 | This code attempts to create a new file with the specified name and write JSON strings to it. If an error occurs, it catches the exception and reports the error message and details.
+```
+
+### "out | " command
+Using the "out |" command, you can tell the ChatBot to export the output to your prompt to a local file. For example, we can ask it to remove the try/catch block from our "test.txt" and generate the output, so that we then can store it in "
+notry.ps1":
+
+```
+PowerGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for PowerGPT: file | C:\users\yanik\test.txt | remove the try/catch block. Do not append any additional text or reasoning | out | C:\users\yanik\notry.ps1
+```
+
 ## Understanding how the OpenAI API generates completions
 Autoregressive models like the ones used by OpenAI are trained to predict the probability distribution of the next token given the preceding tokens. For example, a language model can predict the next word in a sentence given the preceding words. 
 
