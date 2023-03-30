@@ -172,7 +172,7 @@ function New-OpenAICompletionPrompt {
         }
     }
 
-    <#Remove characters the API can not interpret:
+    #Remove characters the API can not interpret:
     $query = $query -replace '(?m)^\s+',''
     $query = $query -replace '\r',''
     $query = $query -replace '●',''
@@ -184,12 +184,12 @@ function New-OpenAICompletionPrompt {
     $query = $query -replace 'ß',"ss"
     $query = $query -replace '\u00A0', ' '
 
-    #>
     
+    <#
     $iso = [System.Text.Encoding]::GetEncoding("iso-8859-1")
     $bytes = $iso.GetBytes($query)
     $query = [System.Text.Encoding]::Default.GetString($bytes)
-
+    #>
 
     if ($previousMessages)
     {
@@ -1563,6 +1563,7 @@ function Start-PowerGPT {
 
                 $filePath = (($InitialQuery.split("|"))[1]).TrimStart(" ")
                 $filepath = $filePath.TrimEnd(" ")
+                $filePath = $filePath.Replace('"','')
                 $FileQuery = (($InitialQuery.split("|"))[2]).TrimStart(" ")
 
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
@@ -1607,6 +1608,7 @@ function Start-PowerGPT {
                     $filePathOut = (($InitialQuery.split("|"))[2]).TrimStart(" ")
                     $filePathOut = $filePathOut.TrimEnd(" ")
                     $InitialQuery = (($InitialQuery.split("|"))[0]).TrimStart(" ")
+                    $InitialQuery = $InitialQuery.TrimEnd(" ")
 
                     [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
                     Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
@@ -1646,6 +1648,8 @@ function Start-PowerGPT {
 
                 $filePath = (($userQuery.split("|"))[1]).TrimStart(" ")
                 $filepath = $filePath.TrimEnd(" ")
+                $filePath = $filePath.Replace('"','')
+
                 $FileQuery = (($userQuery.split("|"))[2]).TrimStart(" ")
 
                 Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
@@ -1702,6 +1706,7 @@ function Start-PowerGPT {
                     $filePathOut = (($InitialQuery.split("|"))[2]).TrimStart(" ")
                     $filePathOut = $filePathOut.TrimEnd(" ")
                     $UserQuery = (($UserQuery.split("|"))[0]).TrimStart(" ")
+                    $UserQuery = $UserQuery.TrimEnd(" ")
 
                     [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
 
@@ -1729,5 +1734,3 @@ function Start-PowerGPT {
         [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 }
-
-$APIKey = "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"
