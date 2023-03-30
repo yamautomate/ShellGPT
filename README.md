@@ -27,9 +27,6 @@ PowerGPT requires the following:
 - An OpenAI API key
 
 ## Installation
-
-
-## How to use the "PowerGPT" module
 To use the "PowerGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
@@ -50,6 +47,8 @@ New-CompletionAPIConversation     Function  CompletionAPI             This is a 
 Invoke-CompletionAPI              Function  CompletionAPI             Sends a prompt (System.Object) to the OpenAI Completion API (api.openai.com/v1/chat/completions) using "gpt-3.5-turbo" model, gets a response, and appends it to the prompt.
 Add-CompletionAPIMessageToConver… Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI".
 ```
+
+
 ## How to start the interactive ChatBot for PowerShell
 First we need to define the `$model`, `$stop`, `$APIKey`, `$temperature` and `$max_token` parameters:
 ```powershell
