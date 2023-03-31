@@ -162,7 +162,7 @@ With the prompt, we can generate context for the model. For example, we can use 
 
 When using prompts for chat conversations, the prompt contains the whole conversation, so that the model has enough context to have a natural conversation. This allows the model to "remember" what you asked a few questions ago. In contrast, when using prompts for training, the prompt is carefully crafted to show the model how it should behave and respond to certain inputs. This allows the model to learn and generalize from the examples in the prompt.
 
-This is used in the `Set-CompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
+This is used in the `Set-OpenAICompletionAPICharacter` function, where the function returns a "trained" character prompt we can use. 
 
 A trained character is a prompt that has been specifically designed to 'train' the OpenAI model to respond in a particular way. It typically includes a set of example questions or statements and the corresponding responses that the model should produce. By using a trained character, we can achieve more consistent and accurate responses from the model.
 
@@ -221,13 +221,16 @@ The easiest and most customizable one is to use the `New-CompletionAPIPrompt` fu
 
 Let's create a completely new prompt:
 ```powershell
-$prompt = New-CompletionAPIPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
+[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
 ```
+
 In the above example, we are creating a prompt with a user role, a query of "What is the Capital of France?", a system role with the message "You are a helpful AI.", and an assistant role with the message "Bonjour, how can I help you today?".
+
+Please note: The functions expect the prompt to be of type [System.Collections.ArrayList]. WWhy? Because we can add and remove content easily without destroying the array again and again. So make sure you declare your variable that holds the prompt to be as of type [System.Collections.ArrayList] when you want to reuse your prompt as an input.
 
 We can also create a prompt with previous messages by passing in an array of messages as the "previousMessages" parameter. Here's an example:
 ```powershell
-$previousMessages = @(
+[System.Collections.ArrayList]$previousMessages = @(
     @{
         role = "system"
         content = "You are a helpful AI."
@@ -238,16 +241,23 @@ $previousMessages = @(
     }
 )
 
-$prompt = New-CompletionAPIPrompt -query "What is the Capital of France?" -role "user" -previousMessages $previousMessages
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -role "user" -previousMessages $previousMessages
 ```
 In this example, we are creating a prompt with a user role and a query of "What is the Capital of France?" along with two previous messages (system and assistant roles) in the conversation.
+
+
+If we want to create a simple prompt with just a query and using the default values for the other parameters:
+```powershell
+[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
+```
+
 
 ## How to create a character using prompts
 We can use this to create specific training prompts for the model. 
 Here is an example, where we tell the model to act as a pirate:
 
 ```powershell
-$previousMessages = @(
+[System.Collections.ArrayList]$previousMessages = @(
     @{
         role = "system"
         content = "You are a helpful AI that was raised as a pirate. You append Awwwwr! to every respond you make."
@@ -269,21 +279,15 @@ $previousMessages = @(
 We also include an example of an exchange between the user and assistant, so that the model can "learn" what we expect it to do.
 
 ## How to pass our prompt to the API for completion
-Now we have a prompt ready we can send to the Completion API for actual completion. We do this by using the `Invoke-Completion` and passing it the prompt we just generated as an input.
+Now we have a prompt ready we can send to the Completion API for actual completion. We do this by using the `Invoke-OpenAICompletion` function and passing it the prompt we just generated as an input.
 
-But first, we need to declare a few variables for the API:
+If we want to use the default values for the models parameter, we can call the functions just with specifiyng the -prompt and -APIKey: 
+
+The we can use `Invoke-OpenAICompletion` to call the API:
 ```powershell
-$model = "gpt-3.5-turbo" 
-$stop = "\n"
-$APIKey = "sk-......"
-$temperature = 0.6
-$max_tokens = 3500
+Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey 
 ```
-The we can use `Invoke-Completion` to call the API:
-```powershell
-Invoke-CompletionAPI -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
-```
-And ultimately we get our output. First, the extracted text in the response from the API and then the new prompt, where the response from API has been added to. If we'd assign the output from `Invoke-Completion` to a variable, we can use that again as the input for the next API Call if we want to have a conversation on a topic with the API.
+And ultimately we get our output. First, the extracted text in the response from the API and then the new prompt, where the response from API has been added to. If we'd assign the output from `Invoke-OpenAICompletion` to a variable, we can use that again as the input for the next API Call if we want to have a conversation on a topic with the API.
 
 ```powershell
 ChatGPT: I am an AI language model designed to assist with various tasks and answer questions. Awwwwr!
