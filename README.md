@@ -214,7 +214,7 @@ Tokens are used as the unit for pricing and quotas for the OpenAI API. The speci
 
 To limit our spending, we can leverage the API Parameter `max_tokens`. With it, we can define what the maximum amount of tokens is we want to use. If the prompt and completion requires more tokens than what we have defined in `max_tokens`, the API returns an error.
 
-## How to construct prompts using the CompletionAPI Module
+## How to construct prompts using the PowerGPT Module
 We have several ways of how we can create prompts with the CompletionAPI module.
 
 The easiest and most customizable one is to use the `New-CompletionAPIPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
@@ -228,6 +228,7 @@ In the above example, we are creating a prompt with a user role, a query of "Wha
 
 Please note: The functions expect the prompt to be of type [System.Collections.ArrayList]. WWhy? Because we can add and remove content easily without destroying the array again and again. So make sure you declare your variable that holds the prompt to be as of type [System.Collections.ArrayList] when you want to reuse your prompt as an input.
 
+### Using previous messages to fract a prompt
 We can also create a prompt with previous messages by passing in an array of messages as the "previousMessages" parameter. Here's an example:
 ```powershell
 [System.Collections.ArrayList]$previousMessages = @(
@@ -246,11 +247,25 @@ $prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -ro
 In this example, we are creating a prompt with a user role and a query of "What is the Capital of France?" along with two previous messages (system and assistant roles) in the conversation.
 
 
+### Using Default values
 If we want to create a simple prompt with just a query and using the default values for the other parameters:
 ```powershell
 [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
 ```
 
+### Add a file to your prompt
+You can use the `-filePath` parameter to specifiy the path to a local file, which shall be included in your prompt. The function then reads the content of the file, strips it of illegal characters and appends it to the prompt together with your query. That way, you can ask questions about your local files.
+Currently supported and tested file-types:
+- .pdf
+- .txt
+- .json
+- .csv
+- .html
+
+Example:
+```powershell
+[System.Collections.ArrayList]New-OpenAICompletionPrompt -query "What is this?" -filePath "C:\Users\Yanik\MyFile.pdf"
+```
 
 ## How to create a character using prompts
 We can use this to create specific training prompts for the model. 
