@@ -32,22 +32,6 @@ To use the "ShellGPT" module and its functions, you need to install the module f
 ```powershell
 Install-Module ShellGPT
 ```
-2. To check if it was installed successfully you can run `Get-Help`:
-```powershell
-Get-Help ShellGPT
-```
-
-The Output should list all available cmldets/functions:
-```
-Name                              Category  Module                    Synopsis
-----                              --------  ------                    --------
-Set-CompletionAPICharacter        Function  CompletionAPI             This function generates a "Character" (a prompt that represents a character) to use. These five characters are hardcoded into that function.
-New-CompletionAPIPrompt           Function  CompletionAPI             Creates a prompt (System.Object) for the function "Invoke-CompletionAPI" to be consumed.
-New-CompletionAPIConversation     Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-     CompletionAPIPrompt" and "Invoke-CompletionAPI".
-Invoke-CompletionAPI              Function  CompletionAPI             Sends a prompt (System.Object) to the OpenAI Completion API (api.openai.com/v1/chat/completions) using "gpt-3.5-turbo" model, gets a response, and appends it to the prompt.
-Add-CompletionAPIMessageToConver… Function  CompletionAPI             This is a wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI".
-```
-
 
 ## How to start the interactive ChatBot for PowerShell
 
