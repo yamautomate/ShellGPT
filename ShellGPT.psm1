@@ -19,7 +19,7 @@ function Invoke-OpenAICompletion {
         [bool]$ShowTokenUsage = $false                 # The maximum number of tokens to generate in the response.
     )
 
-    Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Building request for sending off towards CompletionAPI...") 
+    Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Building request for sending off towards CompletionAPI...") 
 
     #Building Request for API
     $headers = @{
@@ -48,38 +48,38 @@ function Invoke-OpenAICompletion {
         Headers=$Headers
     }
 
-    Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Built request. This is the RequestBody: "+($RequestBody)) 
+    Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Built request. This is the RequestBody: "+($RequestBody)) 
 
     try {
         #Call the OpenAI completions API
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Sending off API Call using 'Invoke-RestMethod' to this URI: "+($uri)) 
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Sending off API Call using 'Invoke-RestMethod' to this URI: "+($uri)) 
         $APIresponse = Invoke-RestMethod @RestMethodParameter
 
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Received response from API: "+($APIresponse | Out-String)) 
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Received response from API: "+($APIresponse | Out-String)) 
 
         #Extract Textresponse from API response
         $convertedResponseForOutput = $APIresponse.choices.message.content
         $tokenUsage = $APIresponse.usage
 
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Extracted Output: "+($convertedResponseForOutput)) 
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) 
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Extracted Output: "+($convertedResponseForOutput)) 
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) 
 
 
     
         #Append text output to prompt for returning it
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Creating new prompt with API response...") 
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Creating new prompt with API response...") 
         [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $convertedResponseForOutput -role "assistant" -previousMessages $prompt -model $model
 
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | New Prompt is: "+($prompt | Out-String)) 
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | New Prompt is: "+($prompt | Out-String)) 
 
         If ($ShowTokenUsage -eq $true)
         {
-            Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) -ForegroundColor Yellow
+            Write-Host ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) -ForegroundColor Yellow
         }
 
         if ($ShowOutput)
         {
-            Write-Host ("PowerGPT @ "+(Get-Date)+" | "+($convertedResponseForOutput)) -ForegroundColor Green
+            Write-Host ("ShellGPT @ "+(Get-Date)+" | "+($convertedResponseForOutput)) -ForegroundColor Green
         }
 
         [System.Collections.ArrayList]$promptToReturn = $prompt
@@ -87,16 +87,16 @@ function Invoke-OpenAICompletion {
     catch {
         $errorDetails = $_.ErrorDetails.Message
 
-        Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Unable to handle Error "+($_.Exception.Message)+"See Error details below. Retry query. If the error persists, consider exporting your current prompt and to continue later.") -ForegroundColor "Red"
-        Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Error Details: "+($errorDetails)) -ForegroundColor "Red"
+        Write-Host ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Unable to handle Error "+($_.Exception.Message)+"See Error details below. Retry query. If the error persists, consider exporting your current prompt and to continue later.") -ForegroundColor "Red"
+        Write-Host ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Error Details: "+($errorDetails)) -ForegroundColor "Red"
 
         if ($errorDetails.contains("invalid JSON: 'utf-8'")) {
-            Write-Host ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Your prompt seems to contain characters that can be misinterpreted in utf-8 encoding. Remove those characters and try again."+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
+            Write-Host ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Your prompt seems to contain characters that can be misinterpreted in utf-8 encoding. Remove those characters and try again."+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
             }
 
         [System.Collections.ArrayList]$prompt.RemoveAt($prompt.count-1) 
         [System.Collections.ArrayList]$promptToReturn = [System.Collections.ArrayList]$prompt
-        Write-Verbose ("PowerGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt, without the last query due to error and to prevent the prompt from becoming unusable: "+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt, without the last query due to error and to prevent the prompt from becoming unusable: "+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
         }
 
     return [System.Collections.ArrayList]$promptToReturn
@@ -123,22 +123,22 @@ function New-OpenAICompletionPrompt {
 
     if ($filePath)
     {
-        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File path was provided: "+($filepath)) 
+        Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File path was provided: "+($filepath)) 
 
 
         if ($filePath.EndsWith(".pdf"))
         {
-            Write-Verbose ("PowerGPT @ "+(Get-Date)+" | File is PDF. Trying to read content and generate .txt...") 
-            Write-Verbose ("PowerGPT @ "+(Get-Date)+" | File is PDF. Reworking filepath to only have forward slashes...") 
+            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | File is PDF. Trying to read content and generate .txt...") 
+            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | File is PDF. Reworking filepath to only have forward slashes...") 
             $filePath = $filePath.Replace("\","/")
 
             try {            
                 $filePath = Convert-PDFtoText -filePath $filePath -TypeToExport txt
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | PDF Content was read, and .txt created at this path: "+($filepath)) 
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | PDF Content was read, and .txt created at this path: "+($filepath)) 
 
             }
             catch {
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | We ran into trouble reading the PDF content and writing it to a .txt file "+($filepath)) 
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | We ran into trouble reading the PDF content and writing it to a .txt file "+($filepath)) 
                 $errorToReport = $_.Exception.Message
                 $errorDetails = $_.ErrorDetails.Message
                 $message = "Unable to handle Error: "+$errorToReport+" See Error details below."
@@ -153,9 +153,9 @@ function New-OpenAICompletionPrompt {
         }
 
         try {
-            Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Trying to read content of file using UTF-8 encoding...") 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Trying to read content of file using UTF-8 encoding...") 
             $filecontent = Get-Content -Path $filePath -Raw -Encoding utf8
-            Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File content extracted...") 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File content extracted...") 
             $query = "$query $filecontent" 
         }
         catch {
@@ -193,16 +193,16 @@ function New-OpenAICompletionPrompt {
 
     if ($previousMessages)
     {
-        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Previous Messages are present: "+($previousMessages | Out-String))
+        Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Previous Messages are present: "+($previousMessages | Out-String))
 
-        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Adding new query: "+($query)+" for role: "+($role)+" to previous Messages")
+        Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Adding new query: "+($query)+" for role: "+($role)+" to previous Messages")
 
         $previousMessages.Add(@{
             role = $role
             content = $query
         }) | Out-Null
 
-        Write-Verbose ("PowerGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Added new query to previousmessages")
+        Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Added new query to previousmessages")
 
         [System.Collections.ArrayList]$promptToReturn = [System.Collections.ArrayList]$previousMessages 
     }
@@ -325,50 +325,50 @@ function New-OpenAICompletionConversation {
         [bool]$ShowTokenUsage = $false        # The maximum number of tokens to generate in the response.
     )
 
-    Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Initializing new conversation...")
+    Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Initializing new conversation...")
 
     if ($Character -eq $null)
     {
-        Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character is not provided.") 
+        Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character is not provided.") 
         
         if ($filePath)
         {   
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
 
             [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -filePath $filePath -model $model
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))  
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))  
         }
         else {
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
 
             [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -instructor $instructor -role "user" -assistantReply $assistantReply -model $model
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))   
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))   
         }
     }
     else 
     {
-        Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character is provided: "+$Character) 
+        Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character is provided: "+$Character) 
 
         [System.Collections.ArrayList]$characterPrompt= Set-OpenAICompletionCharacter -mode $Character -instructor $instructor -assistantReply $assistantReply
-        Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character prompt is: ") 
+        Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Character prompt is: ") 
         If ($filePath)
         {
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath)) 
 
             [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -filePath $filePath -model $model
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))  
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))  
         }
 
         else {
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | FilePath is not provided") 
 
             [System.Collections.ArrayList]$promptForAPI = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $characterPrompt -model $model
-            Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))   
+            Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Prompt is: "+($promptForAPI | Out-String))   
         }
         
     }
     
-    Write-Verbose ("PowerGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Calling OpenAI Completion API with prompt...") 
+    Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Calling OpenAI Completion API with prompt...") 
     [System.Collections.ArrayList]$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
         
     return [System.Collections.ArrayList]$promptToReturn
@@ -400,11 +400,11 @@ function Add-OpenAICompletionMessageToConversation {
 
     if ($filePath)
     {
-        Write-Verbose ("PowerGPT-Add-OpenAICompletionMessageToConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath | Out-String))  
+        Write-Verbose ("ShellGPT-Add-OpenAICompletionMessageToConversation @ "+(Get-Date)+" | FilePath is provided: "+($filePath | Out-String))  
         [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -filePath $filePath -model $model
     }
     else {
-        Write-Verbose ("PowerGPT-Add-OpenAICompletionMessageToConversation @ "+(Get-Date)+" | FilePath is not provided")
+        Write-Verbose ("ShellGPT-Add-OpenAICompletionMessageToConversation @ "+(Get-Date)+" | FilePath is not provided")
         [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $query -role "user" -previousMessages $previousMessages -model $model
     }
 
@@ -1387,19 +1387,19 @@ function Convert-PDFtoText {
         [string]$TypeToExport
 	)
 
-    Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Convertig PDF to Text: "+($filepath)) 
+    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Convertig PDF to Text: "+($filepath)) 
     
     #Need to generalize this. Make .dll part of module. 
     
     Add-Type -Path "C:\ps\itextsharp.dll"
-    Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
+    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
     $pdf = New-Object iTextSharp.text.pdf.pdfreader -ArgumentList $filePath
-    Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found.") 
+    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found.") 
 
 
     $text = ""
 	for ($page = 1; $page -le $pdf.NumberOfPages; $page++){
-        Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Parsing text...") 
+        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Parsing text...") 
 		$text+=([iTextSharp.text.pdf.parser.PdfTextExtractor]::GetTextFromPage($pdf,$page))
 	}	
 	$pdf.Close()
@@ -1407,20 +1407,20 @@ function Convert-PDFtoText {
 
     if ($text -eq "" -or $text -eq " " -or $text -eq $null)
     {
-        Write-Host ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found, but it looks like its empty. Either it really has no text or it consist only of pictures or a Scan. PowerGPT does not have OCR. The prompt will not have any additional content in it.") -ForegroundColor Red
+        Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found, but it looks like its empty. Either it really has no text or it consist only of pictures or a Scan. ShellGPT does not have OCR. The prompt will not have any additional content in it.") -ForegroundColor Red
     }
 
-    Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Done parsing PDF. Preparing export to .txt") 
+    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Done parsing PDF. Preparing export to .txt") 
 
     if ($filePath.Contains("\"))
     {
-        Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is the whole path. Splitting it up...") 
+        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is the whole path. Splitting it up...") 
         $filename = $filepath.split("\")[($filepath.split("\")).count-1]
         $basenamefile = ($filename.Split(".pdf"))[0]
         $Outputfolder = ($filepath.split($basenamefile))[0]
     }
     else {
-        Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is only filename. Indicates run in the dir where the script was launched") 
+        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is only filename. Indicates run in the dir where the script was launched") 
         $filename = $filePath
         $basenamefile = ($filename.Split(".pdf"))[0]
         $Outputfolder = ""
@@ -1442,48 +1442,48 @@ function Convert-PDFtoText {
             $exportEnding = ".jsonl"
         }
         default {
-            Write-Host ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Invalid option for Switch.")
+            Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Invalid option for Switch.")
         }
     }
 
-    Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Export type is: "+($exportEnding)) 
+    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Export type is: "+($exportEnding)) 
 
     $OutputPath = $Outputfolder+$basenamefile+$exportEnding
 
-    Write-Verbose ("PowerGPT-Convert-PDFtoText @ "+(Get-Date)+" | Outputpath is: "+($OutputPath)) 
+    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Outputpath is: "+($OutputPath)) 
 
     $text | Out-File $OutputPath -Force
     return $OutputPath
 }
 
-function Get-PowerGPTHelpMessage {
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | To include a file for the model to reference in the prompt, use the following notation 'file | pathtofile | instruction' in the query.") -ForegroundColor DarkMagenta
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Supported file types are: .txt, .pdf, .csv, .json") -ForegroundColor DarkMagenta
+function Get-ShellGPTHelpMessage {
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | To include a file for the model to reference in the prompt, use the following notation 'file | pathtofile | instruction' in the query.") -ForegroundColor DarkMagenta
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Supported file types are: .txt, .pdf, .csv, .json") -ForegroundColor DarkMagenta
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Example: file | C:\Users\Yanik\test.txt | Summarize this:") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Example: file | C:\Users\Yanik\test.txt | Summarize this:") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | This will summarize the content in the file 'test.txt'") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Example: file | C:\Users\Yanik\test.pdf | Summarize this:") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | This will create a .txt file with the content of the .PDF, read it and summarize the content in the file 'test.txt'") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | This will summarize the content in the file 'test.txt'") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Example: file | C:\Users\Yanik\test.pdf | Summarize this:") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | This will create a .txt file with the content of the .PDF, read it and summarize the content in the file 'test.txt'") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | There are a few other commands available. ") -ForegroundColor DarkMagenta
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | There are a few other commands available. ") -ForegroundColor DarkMagenta
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Start a new conversation:  ") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | newconvo | ") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Start a new conversation:  ") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | newconvo | ") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Export the current prompt: ") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | export | ") -ForegroundColor DarkGray
-    Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
-
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Stop PowerGPT: ") -ForegroundColor DarkGray
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | quit | ") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Export the current prompt: ") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | export | ") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
 
-    Write-Host ("PowerGPT @ "+(Get-Date)+" | Stop PowerGPT and export the prompt: ") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Stop ShellGPT: ") -ForegroundColor DarkGray
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | quit | ") -ForegroundColor DarkGray
+    Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
+
+    Write-Host ("ShellGPT @ "+(Get-Date)+" | Stop ShellGPT and export the prompt: ") -ForegroundColor DarkGray
     Write-Host ("-------------------------------------------------------------------------------------------------------------------------") -ForegroundColor DarkGray
 }
 
-function Start-PowerGPT {
+function Start-ShellGPT {
     param (
         [Parameter(Mandatory=$true)]    
         [string]$APIKey,                        
@@ -1504,30 +1504,30 @@ function Start-PowerGPT {
         [string]$assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
     )
 
-    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Initializing... ") 
-    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used Model is : "+($model)) 
-    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used stop instructor is : "+($stop))
-    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used temperature is: "+($temperature))  
-    Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Used max_tokens is: "+($max_tokens)) 
+    Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Initializing... ") 
+    Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Used Model is : "+($model)) 
+    Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Used stop instructor is : "+($stop))
+    Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Used temperature is: "+($temperature))  
+    Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Used max_tokens is: "+($max_tokens)) 
 
-    $contiueConversation = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Do you want to restore an existing conversation? (enter 'y' or 'yes'): ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+    $contiueConversation = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Do you want to restore an existing conversation? (enter 'y' or 'yes'): ") -ForegroundColor yellow -NoNewLine; Read-Host) 
 
     if ($contiueConversation  -eq "y" -or $contiueConversation -eq "yes")
     {
-        Get-PowerGPTHelpMessage
-        $importPath = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file you want to continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+        Get-ShellGPTHelpMessage
+        $importPath = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file you want to continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
         [System.Collections.ArrayList]$importedPrompt = Import-OpenAIPromptFromJson -Path $importPath
         [System.Collections.ArrayList]$previousMessages = $importedPrompt
     }
     else 
     {
         # Display a welcome message and instructions for stopping the conversation.
-        Get-PowerGPTHelpMessage
+        Get-ShellGPTHelpMessage
 
         # Initialize the previous messages array.
         [System.Collections.ArrayList]$previousMessages = @()
 
-        $option = Read-Host ("PowerGPT @ "+(Get-Date)+" | Select the Character the Model should assume:`n1: Chat`n2: Ticker and Sentiment Analysis`n3: Sentiment Analysis`n4: Intent Analysis`n5: Intent & Topic Analysis`nPowerGPT @ "+(Get-Date)+" | Enter the according number of the character you'd like")
+        $option = Read-Host ("ShellGPT @ "+(Get-Date)+" | Select the Character the Model should assume:`n1: Chat`n2: Ticker and Sentiment Analysis`n3: Sentiment Analysis`n4: Intent Analysis`n5: Intent & Topic Analysis`nShellGPT @ "+(Get-Date)+" | Enter the according number of the character you'd like")
 
         switch ($option) {
             "1" {
@@ -1548,27 +1548,27 @@ function Start-PowerGPT {
 
             default {
                 $Character = "Chat"
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | Invalid option selected.") -ForegroundColor Yellow 
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | Invalid option selected.") -ForegroundColor Yellow 
             }
         }
         
-        Write-Host ("PowerGPT @ "+(Get-Date)+" | Selected Character is: "+($Character)) -ForegroundColor Yellow 
-        $InitialQuery = Read-Host ("PowerGPT @ "+(Get-Date)+" | Your query for ChatGPT or commands for PowerGPT")
+        Write-Host ("ShellGPT @ "+(Get-Date)+" | Selected Character is: "+($Character)) -ForegroundColor Yellow 
+        $InitialQuery = Read-Host ("ShellGPT @ "+(Get-Date)+" | Your query for ChatGPT or commands for ShellGPT")
 
-        Write-Verbose ("PowerGPT @ "+(Get-Date)+" | InitialQuery is: "+($InitialQuery)) 
+        Write-Verbose ("ShellGPT @ "+(Get-Date)+" | InitialQuery is: "+($InitialQuery)) 
 
         switch -Regex ($InitialQuery) {
             "^file \|.*" {
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | InitialQuery is File command")
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | InitialQuery is File command")
 
                 $filePath = (($InitialQuery.split("|"))[1]).TrimStart(" ")
                 $filepath = $filePath.TrimEnd(" ")
                 $filePath = $filePath.Replace('"','')
                 $FileQuery = (($InitialQuery.split("|"))[2]).TrimStart(" ")
 
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Starting Conversation...") 
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Starting Conversation...") 
 
                 [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
@@ -1577,28 +1577,28 @@ function Start-PowerGPT {
                     {
                         $filePathOut = (($InitialQuery.split("|"))[4]).TrimStart(" ")
                         $filePathOut = $filePathOut.TrimEnd(" ")
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
 
                         try {
                             ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
-                            Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+                            Write-Host ("ShellGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
     
                         }
                         catch {
-                            Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                            Write-Host ("ShellGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
                         }
                     }
             }
             "^quit \|.*" {
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | PowerGPT is exiting now...") -ForegroundColor Yellow
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT is exiting now...") -ForegroundColor Yellow
                 Start-Sleep 5
                 exit
             }
             "^export \|.*" {
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | PowerGPT has nothing to export :(") -ForegroundColor Yellow
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT has nothing to export :(") -ForegroundColor Yellow
             }
             "^\s*$" {
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
                 [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
             default {
@@ -1611,15 +1611,15 @@ function Start-PowerGPT {
                     $InitialQuery = $InitialQuery.TrimEnd(" ")
 
                     [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
-                    Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
     
                     try {
                         ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
     
                     }
                     catch {
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
                     }
                 }
                 else
@@ -1639,12 +1639,12 @@ function Start-PowerGPT {
     # Loop until the user stops the conversation.
     while ($continue) {
 
-        # Prompt the user to enter their query for ChatGPT or commands for PowerGPT.
-        $userQuery = Read-Host ("PowerGPT @ "+(Get-Date)+" | Your query for ChatGPT or commands for PowerGPT")
+        # Prompt the user to enter their query for ChatGPT or commands for ShellGPT.
+        $userQuery = Read-Host ("ShellGPT @ "+(Get-Date)+" | Your query for ChatGPT or commands for ShellGPT")
 
         switch -Regex ($userQuery) {
             "^file \|.*" {
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | InitialQuery is File command")
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | InitialQuery is File command")
 
                 $filePath = (($userQuery.split("|"))[1]).TrimStart(" ")
                 $filepath = $filePath.TrimEnd(" ")
@@ -1652,8 +1652,8 @@ function Start-PowerGPT {
 
                 $FileQuery = (($userQuery.split("|"))[2]).TrimStart(" ")
 
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
-                Write-Verbose ("PowerGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
+                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
 
                 [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
@@ -1663,41 +1663,41 @@ function Start-PowerGPT {
 
                     $filePathOut = (($UserQuery.split("|"))[4]).TrimStart(" ")
                     $filePathOut = $filePathOut.TrimEnd(" ")
-                    Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
 
                     try {
                         ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
 
                     }
                     catch {
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
                     }
                     
                 }
 
             }
             "^newconvo \|.*" {
-                Start-PowerGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
+                Start-ShellGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
             }
             "^quit \|.*" {
-                $exportBool = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Do you want to export the current prompt before exiting? Enter 'y' or 'yes': ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+                $exportBool = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Do you want to export the current prompt before exiting? Enter 'y' or 'yes': ") -ForegroundColor yellow -NoNewLine; Read-Host) 
                 if ($exportBool -eq "y" -or $exportBool -eq "yes" -or $exportBool -eq "Y" -or $exportBool -eq "YES")
                 {
-                    $exportPath = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
-                    Write-Host ("PowerGPT @ "+(Get-Date)+" | PowerGPT exported the prompt to: "+($exportPath)) -ForegroundColor yellow
+                    $exportPath = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT exported the prompt to: "+($exportPath)) -ForegroundColor yellow
                 }
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | PowerGPT is exiting now...") -ForegroundColor yellow
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT is exiting now...") -ForegroundColor yellow
                 Start-Sleep 5
                 exit
             }
             "^export \|.*" {
-                $exportPath = $(Write-Host ("PowerGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+                $exportPath = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
                 Export-OpenAIPromptToJson -Path $exportPath -prompt $previousMessages
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | PowerGPT exported the prompt to: "+($exportPath)) -ForegroundColor yellow
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT exported the prompt to: "+($exportPath)) -ForegroundColor yellow
             }
             "^\s*$" {
-                Write-Host ("PowerGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
                 [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
             }
             default {            
@@ -1710,15 +1710,15 @@ function Start-PowerGPT {
 
                     [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
 
-                    Write-Host ("PowerGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
     
                     try {
                         ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
     
                     }
                     catch {
-                        Write-Host ("PowerGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
                     }
 
                 }
