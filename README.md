@@ -1,9 +1,9 @@
-# PowerGPT - A PowerShell Module for the APIs of OpenAI.
+# ShellGPT - A PowerShell Module for the APIs of OpenAI.
 
-The [`PowerGPT`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
+The [`ShellGPT`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
 
 The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts or applications.
-PowerGPT makes it easy to access the full potential of GPT from the comfort of your command line.
+ShellGPT makes it easy to access the full potential of GPT from the comfort of your command line.
 
 This module is made by the community and not OpenAI.
 
@@ -21,20 +21,20 @@ This module supports almost every endpoints from OpenAI as seen in the table bel
 | /v1/fine-tunes | 		davinci, curie, babbage, ada  | `New-OpenAIFineTuneJob`, `Get-OpenAIFineTuneJobs`, `Get-OpenAIFineTuneJobById`,`Get-OpenAIFineTuneEvents`,`Remove-OpenAIFineTuneModel`,`Stop-OpenAIFineTuneJob` |
 
 ## Requirements
-PowerGPT requires the following:
+ShellGPT requires the following:
 
 - PowerShell 5.1 or higher
 - An OpenAI API key
 
 ## Installation
-To use the "PowerGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
+To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
-Install-Module PowerGPT
+Install-Module ShellGPT
 ```
 2. To check if it was installed successfully you can run `Get-Help`:
 ```powershell
-Get-Help PowerGPT
+Get-Help ShellGPT
 ```
 
 The Output should list all available cmldets/functions:
@@ -56,9 +56,9 @@ We need to define the `$APIKey`, we obtained earlier first:
 $APIKey = "YOUR_API_KEY"
 ```
 
-Then we can use `Start-PowerGPT` to start the command-line based ChatBot using the default values:
+Then we can use `Start-ShellGPT` to start the command-line based ChatBot using the default values:
 ```powershell
-Start-PowerGPT -APIKey $APIKey
+Start-ShellGPT -APIKey $APIKey
 ```
 The default values are:
 
@@ -70,7 +70,7 @@ $max_tokens = 900
 ```
 
 
-If you want to launch `PowerGPT` with your own parameter values, you can define them and call `Start-PowerGPT` with all params you wish to use:
+If you want to launch `ShellGPT` with your own parameter values, you can define them and call `Start-ShellGPT` with all params you wish to use:
 
 ```powershell
 $model = "gpt-3" 
@@ -79,9 +79,9 @@ $temperature = 0.1
 $max_tokens = 200
 ```
 
-Then we can use `Start-PowerGPT` and pass along the parameters we defined above:
+Then we can use `Start-ShellGPT` and pass along the parameters we defined above:
 ```powershell
-Start-PowerGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
+Start-ShellGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
 ```
 ## How-To use the ChatBot
 When launched, you are asked if you want to continue an existing conversation or a new one. If you have exported a prompt earlier, you can continue where left off by importing it. If you start a new conversation, you can pick the character. Chat provides the ChatBot experience.
@@ -98,7 +98,7 @@ Using the "file |" command, you can tell the ChatBot to parse a local file and u
 In the example below we ask it to summarize the content of the file "test.txt":
 
 ```
-PowerGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for PowerGPT: file | test.txt | Summarize this:
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | test.txt | Summarize this:
 ```
 The CompletionAPI responds:
 ```
@@ -110,7 +110,7 @@ Using the "out |" command, you can tell the ChatBot to export the output to your
 notry.ps1":
 
 ```
-PowerGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for PowerGPT: file | C:\users\yanik\test.txt | remove the try/catch block. Do not append any additional text or reasoning | out | C:\users\yanik\notry.ps1
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | C:\users\yanik\test.txt | remove the try/catch block. Do not append any additional text or reasoning | out | C:\users\yanik\notry.ps1
 ```
 
 ## Understanding how the OpenAI API generates completions
@@ -214,7 +214,7 @@ Tokens are used as the unit for pricing and quotas for the OpenAI API. The speci
 
 To limit our spending, we can leverage the API Parameter `max_tokens`. With it, we can define what the maximum amount of tokens is we want to use. If the prompt and completion requires more tokens than what we have defined in `max_tokens`, the API returns an error.
 
-## How to construct prompts using the PowerGPT Module
+## How to construct prompts using the ShellGPT Module
 We have several ways of how we can create prompts with the CompletionAPI module.
 
 The easiest and most customizable one is to use the `New-CompletionAPIPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
