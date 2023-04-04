@@ -1391,10 +1391,19 @@ function Convert-PDFtoText {
     
     #Need to generalize this. Make .dll part of module. 
     
-    Add-Type -Path "C:\ps\itextsharp.dll"
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
-    $pdf = New-Object iTextSharp.text.pdf.pdfreader -ArgumentList $filePath
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found.") 
+    try 
+    {
+	    Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\iTextSharp.5.5.13.3\lib\itextsharp.dll"
+	    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
+	    $pdf = New-Object iTextSharp.text.pdf.pdfreader -ArgumentList $filePath
+	    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found.") 
+    }
+    
+    catch
+    {
+    	Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | itextsharp.dll not present. Make sure you installed it and it is in expected folder: C:\Program Files\PackageManagement\NuGet\Packages\iTextSharp.5.5.13.3")
+    }
+    
 
 
     $text = ""
