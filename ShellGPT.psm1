@@ -2,7 +2,7 @@ function Invoke-OpenAICompletion {
     param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [System.Collections.ArrayList]$prompt,                 # The prompt to send to the API to act upon
+        [System.Collections.ArrayList]$prompt,  # The prompt to send to the API to act upon
         [Parameter(Mandatory=$true)]
         [string]$APIKey,                        # The API key to authenticate the request.
         [Parameter(Mandatory=$false)]
@@ -14,9 +14,9 @@ function Invoke-OpenAICompletion {
         [Parameter(Mandatory=$false)]
         [int]$max_tokens = 900,                 # The maximum number of tokens to generate in the response.
         [Parameter(Mandatory=$false)]
-        [bool]$ShowOutput = $false,                    # The maximum number of tokens to generate in the response.
+        [bool]$ShowOutput = $false,             # The maximum number of tokens to generate in the response.
         [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false                 # The maximum number of tokens to generate in the response.
+        [bool]$ShowTokenUsage = $false          # The maximum number of tokens to generate in the response.
     )
 
     Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Building request for sending off towards CompletionAPI...") 
@@ -37,7 +37,7 @@ function Invoke-OpenAICompletion {
 
  
     #Convert the whole Body to be JSON, so that API can interpret it
-    $RequestBody = $RequestBody | ConvertTo-Json -depth 3
+    $RequestBody = $RequestBody | ConvertTo-Json -depth 3 
 
     $uri = 'https://api.openai.com/v1/chat/completions'
 
@@ -60,12 +60,10 @@ function Invoke-OpenAICompletion {
         #Extract Textresponse from API response
         $convertedResponseForOutput = $APIresponse.choices.message.content
         $tokenUsage = $APIresponse.usage
-
+        
         Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Extracted Output: "+($convertedResponseForOutput)) 
         Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | TokenUsage for this prompt: "+($TokenUsage.prompt_tokens)+" for completion: "+($TokenUsage.completion_tokens)+" Total tokens used: "+($TokenUsage.total_tokens)) 
 
-
-    
         #Append text output to prompt for returning it
         Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Creating new prompt with API response...") 
         [System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query $convertedResponseForOutput -role "assistant" -previousMessages $prompt -model $model
@@ -96,7 +94,9 @@ function Invoke-OpenAICompletion {
 
         [System.Collections.ArrayList]$prompt.RemoveAt($prompt.count-1) 
         [System.Collections.ArrayList]$promptToReturn = [System.Collections.ArrayList]$prompt
-        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt, without the last query due to error and to prevent the prompt from becoming unusable: "+($promptToReturn |Out-String)) -ForegroundColor "Yellow"
+
+        Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Returning Input prompt, without the last query due to error and to prevent the prompt from becoming unusable: "+($promptToReturn | Out-String)) 
+
         }
 
     return [System.Collections.ArrayList]$promptToReturn
@@ -121,6 +121,8 @@ function New-OpenAICompletionPrompt {
         [string]$model      
         )
 
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
     if ($filePath)
     {
         Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File path was provided: "+($filepath)) 
@@ -128,26 +130,25 @@ function New-OpenAICompletionPrompt {
 
         if ($filePath.EndsWith(".pdf"))
         {
-            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | File is PDF. Trying to read content and generate .txt...") 
-            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | File is PDF. Reworking filepath to only have forward slashes...") 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File is PDF. Trying to read content and generate .txt...") 
+            Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | File is PDF. Reworking filepath to only have forward slashes...") 
             $filePath = $filePath.Replace("\","/")
 
             try {            
                 $filePath = Convert-PDFtoText -filePath $filePath -TypeToExport txt
-                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | PDF Content was read, and .txt created at this path: "+($filepath)) 
+                Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | PDF Content was read, and .txt created at this path: "+($filepath)) 
 
             }
             catch {
-                Write-Verbose ("ShellGPT @ "+(Get-Date)+" | We ran into trouble reading the PDF content and writing it to a .txt file "+($filepath)) 
+                Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | We ran into trouble reading the PDF content and writing it to a .txt file "+($filepath)) 
                 $errorToReport = $_.Exception.Message
                 $errorDetails = $_.ErrorDetails.Message
-                $message = "Unable to handle Error: "+$errorToReport+" See Error details below."
-            
-                write-host "Error:"$message -ForegroundColor red
+        
+                Write-Host ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | We ran into trouble reading the PDF content and writing it to a .txt file "+($errorToReport)) 
             
                 if ($errorDetails)
                     {
-                        write-host "ErrorDetails:"$errorDetails -ForegroundColor "Red"
+                        Write-Host ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Details: "+($errorDetails)) 
                     }        
                 }
         }
@@ -171,7 +172,6 @@ function New-OpenAICompletionPrompt {
             }    
         }
     }
-
     #Remove characters the API can not interpret:
     $query = $query -replace '(?m)^\s+',''
     $query = $query -replace '\r',''
@@ -184,17 +184,15 @@ function New-OpenAICompletionPrompt {
     $query = $query -replace 'ß',"ss"
     $query = $query -replace '\u00A0', ' '
 
-    
-    <#
     $iso = [System.Text.Encoding]::GetEncoding("iso-8859-1")
     $bytes = $iso.GetBytes($query)
-    $query = [System.Text.Encoding]::Default.GetString($bytes)
-    #>
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($query)
 
+    $query = [System.Text.Encoding]::utf8.GetString($bytes)
+  
     if ($previousMessages)
     {
         Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Previous Messages are present: "+($previousMessages | Out-String))
-
         Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Adding new query: "+($query)+" for role: "+($role)+" to previous Messages")
 
         $previousMessages.Add(@{
@@ -1389,70 +1387,86 @@ function Convert-PDFtoText {
 
     Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Convertig PDF to Text: "+($filepath)) 
     
-    #Need to generalize this. Make .dll part of module. 
+    try 
+    {
+	    Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\iTextSharp.5.5.13.3\lib\itextsharp.dll"
+	    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
+    }
     
-    Add-Type -Path "C:\ps\itextsharp.dll"
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
-    $pdf = New-Object iTextSharp.text.pdf.pdfreader -ArgumentList $filePath
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found.") 
-
-
-    $text = ""
-	for ($page = 1; $page -le $pdf.NumberOfPages; $page++){
-        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Parsing text...") 
-		$text+=([iTextSharp.text.pdf.parser.PdfTextExtractor]::GetTextFromPage($pdf,$page))
-	}	
-	$pdf.Close()
-
-
-    if ($text -eq "" -or $text -eq " " -or $text -eq $null)
+    catch
     {
-        Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found, but it looks like its empty. Either it really has no text or it consist only of pictures or a Scan. ShellGPT does not have OCR. The prompt will not have any additional content in it.") -ForegroundColor Red
+        
+    	Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | itextsharp.dll not present. Make sure you installed it and it is in expected folder: C:\Program Files\PackageManagement\NuGet\Packages\iTextSharp.5.5.13.3\lib") -ForegroundColor Red
+        Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Unable to handle Error "+($_.Exception.Message)) -ForegroundColor "Red"
     }
 
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Done parsing PDF. Preparing export to .txt") 
+    try {
+        $pdf = New-Object iTextSharp.text.pdf.pdfreader -ArgumentList $filePath
+	    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found.") 
 
-    if ($filePath.Contains("\"))
-    {
-        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is the whole path. Splitting it up...") 
-        $filename = $filepath.split("\")[($filepath.split("\")).count-1]
-        $basenamefile = ($filename.Split(".pdf"))[0]
-        $Outputfolder = ($filepath.split($basenamefile))[0]
+        $text = ""
+        for ($page = 1; $page -le $pdf.NumberOfPages; $page++){
+            Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Parsing text...") 
+            $text+=([iTextSharp.text.pdf.parser.PdfTextExtractor]::GetTextFromPage($pdf,$page))
+        }	
+        $pdf.Close()
+    
+    
+        if ($text -eq "" -or $text -eq " " -or $text -eq $null)
+        {
+            Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF was found, but it looks like its empty. Either it really has no text or it consist only of pictures or a Scan. ShellGPT does not have OCR. The prompt will not have any additional content in it.") -ForegroundColor Red
+        }
+    
+        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Done parsing PDF. Preparing export to .txt") 
+
+        if ($filePath.Contains("\"))
+        {
+            Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is the whole path. Splitting it up...") 
+            $filename = $filepath.split("\")[($filepath.split("\")).count-1]
+            $basenamefile = ($filename.Split(".pdf"))[0]
+            $Outputfolder = ($filepath.split($basenamefile))[0]
+        }
+        else {
+            Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is only filename. Indicates run in the dir where the script was launched") 
+            $filename = $filePath
+            $basenamefile = ($filename.Split(".pdf"))[0]
+            $Outputfolder = ""
+        }
+    
+        switch ($TypeToExport) {
+            "txt" {
+                $exportEnding = ".txt"
+            }
+            "csv" {
+                $exportEnding = ".csv"
+    
+            }
+            "json" {
+                $exportEnding = ".json"
+    
+            }
+            "jsonl" {
+                $exportEnding = ".jsonl"
+            }
+            default {
+                Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Invalid option for Switch.")
+            }
+        }
+    
+        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Export type is: "+($exportEnding)) 
+    
+        $OutputPath = $Outputfolder+$basenamefile+$exportEnding
+    
+        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Outputpath is: "+($OutputPath)) 
+    
+        $text | Out-File $OutputPath -Force
+
     }
-    else {
-        Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Filepath is only filename. Indicates run in the dir where the script was launched") 
-        $filename = $filePath
-        $basenamefile = ($filename.Split(".pdf"))[0]
-        $Outputfolder = ""
+    catch {
+        Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | PDF could not be loaded. Is itextsharp.dll present? Does the PDF exist? Is the Path valid?") -ForegroundColor Red
+        Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Unable to handle Error "+($_.Exception.Message)) -ForegroundColor "Red"
     }
-
-    switch ($TypeToExport) {
-        "txt" {
-            $exportEnding = ".txt"
-        }
-        "csv" {
-            $exportEnding = ".csv"
-
-        }
-        "json" {
-            $exportEnding = ".json"
-
-        }
-        "jsonl" {
-            $exportEnding = ".jsonl"
-        }
-        default {
-            Write-Host ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Invalid option for Switch.")
-        }
-    }
-
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Export type is: "+($exportEnding)) 
-
-    $OutputPath = $Outputfolder+$basenamefile+$exportEnding
-
-    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Outputpath is: "+($OutputPath)) 
-
-    $text | Out-File $OutputPath -Force
+    
     return $OutputPath
 }
 
@@ -1734,3 +1748,5 @@ function Start-ShellGPT {
         [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 }
+
+$APIKey = "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"
