@@ -1389,7 +1389,8 @@ function Convert-PDFtoText {
     
     try 
     {
-	    Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\iTextSharp.5.5.13.3\lib\itextsharp.dll"
+        Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\BouncyCastle.1.8.9\lib\BouncyCastle.Crypto.dll"
+        Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\iTextSharp.5.5.13.3\lib\itextsharp.dll"
 	    Write-Verbose ("ShellGPT-Convert-PDFtoText @ "+(Get-Date)+" | Loaded itextsharp.dll") 
     }
     
@@ -1706,7 +1707,9 @@ function Start-ShellGPT {
                 exit
             }
             "^export \|.*" {
+
                 $exportPath = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+
                 Export-OpenAIPromptToJson -Path $exportPath -prompt $previousMessages
                 Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT exported the prompt to: "+($exportPath)) -ForegroundColor yellow
             }
