@@ -1,22 +1,78 @@
 function Invoke-OpenAICompletion {
+        <#
+        .SYNOPSIS
+        Sends a prompt (System.Object) to the OpenAI Completion API (api.openai.com/v1/chat/completions) using "gpt-3.5-turbo" model, gets a response, and appends it to the prompt.
+
+        .DESCRIPTION
+        Sends a prompt (System.Object) to the OpenAI Completion API (api.openai.com/v1/chat/completions), gets a response, and appends it to the prompt.
+        Preferably generate a prompt (System.Object) with "New-CompletionAPIPrompt" and use that as the input for the parameter "-prompt"
+        
+        .PARAMETER prompt
+        The prompt (System.Object) to send to the API to act upon. Preferably generate a prompt (System.Object) with "New-CompletionAPIPrompt" and use that as the input for the parameter "-prompt"
+
+        .PARAMETER model
+        The model of the endpoint to use.
+
+        .PARAMETER stop
+        The stop instructor for the model. Tell is where it should generating output.
+
+        .PARAMETER APIKey
+        The API key for the OpenAI API to authenticate the request. This parameter is mandatory and accepts a string data type. This parameter is mandatory.
+
+        .PARAMETER temperature
+        The temperature value to use for sampling. This parameter is mandatory and accepts a double data type. This parameter is mandatory.
+
+        .PARAMETER max_tokens
+        The maximum number of tokens to generate in the response. This parameter is mandatory and accepts an integer data type. This parameter is mandatory.
+
+        .INPUTS
+        None. You cannot pipe objects to Invoke-CompletionAPI.
+
+        .OUTPUTS
+        System.Object. Returns the prompt, enriched with the repsonse from the API.
+
+        .EXAMPLE
+        PS> $model = "gpt-3.5-turbo" 
+        PS> $stop = "\n"
+        PS> $APIKey = "YOUR_API_KEY"
+        PS> $temperature = 0.6
+        PS> $max_tokens = 3500
+        PS> $prompt = New-OpenAICmpletionPrompt -query "What is the Capitol of Switzerland?" 
+        PS> $response = Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens
+        ChatGPT: The capital of Switzerland is Bern.
+        PS> $response
+        Name                           Value
+        ----                           -----
+        content                        You are a helpful AI.
+        role                           system
+        content                        How can I help you today?
+        role                           assistant
+        content                        What is the Capitol of Bern?
+        role                           user
+        content                        The capital of Bern is Bern itself.
+        role                           assistant
+
+        .LINK
+        GitHub Repo: 
+    #>
     param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [System.Collections.ArrayList]$prompt,  # The prompt to send to the API to act upon
+        [System.Collections.ArrayList]$prompt, 
         [Parameter(Mandatory=$true)]
-        [string]$APIKey,                        # The API key to authenticate the request.
+        [string]$APIKey,                        
         [Parameter(Mandatory=$false)]
-        [string]$model = "gpt-3.5-turbo",       # The model to use from the endpoint.
+        [string]$model = "gpt-3.5-turbo",      
         [Parameter(Mandatory=$false)]
-        [string]$stop = "\n",                   # The stop instructor for the model. 
+        [string]$stop = "\n",                 
         [Parameter(Mandatory=$false)]
-        [double]$temperature = 0.4,             # The temperature value to use for sampling.
+        [double]$temperature = 0.4,            
         [Parameter(Mandatory=$false)]
-        [int]$max_tokens = 900,                 # The maximum number of tokens to generate in the response.
+        [int]$max_tokens = 900,               
         [Parameter(Mandatory=$false)]
-        [bool]$ShowOutput = $false,             # The maximum number of tokens to generate in the response.
+        [bool]$ShowOutput = $false,            
         [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false          # The maximum number of tokens to generate in the response.
+        [bool]$ShowTokenUsage = $false         
     )
 
     Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Building request for sending off towards CompletionAPI...") 
