@@ -110,6 +110,28 @@ Using the "out |" command, you can tell the ChatBot to export the output to your
 ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | C:\users\yanik\test.txt | remove the try/catch block. Do not append any additional text or reasoning | out | C:\users\yanik\notry.ps1
 ```
 
+### "export | " command
+Using the "export |" command, you can tell the ChatBot to export your current prompt to a local file:
+```
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: export |
+ShellGPT @ 04/06/2023 20:36:52 | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: C:\Users\Yanik\MyPrompt.json
+```
+You can then later use that prompt to continue your conversation by importing it during the start of a new conversation
+
+### "newconvo | " command
+This command drops the current prompt and starts a new conversation.
+```
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: newconvo |
+ShellGPT @ 04/06/2023 20:40:41 | Do you want to restore an existing conversation? (enter 'y' or 'yes'): 
+```
+   
+### "quit | " command
+The ChatBot exits.
+```
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: quit |
+```
+   
+
 ## Understanding how the OpenAI API generates completions
 Autoregressive models like the ones used by OpenAI are trained to predict the probability distribution of the next token given the preceding tokens. For example, a language model can predict the next word in a sentence given the preceding words. 
 
@@ -217,7 +239,7 @@ The easiest and most customizable one is to use the `New-OpenAICompletionPrompt`
 
 Let's create a completely new prompt:
 ```powershell
-[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
 ```
 
 In the above example, we are creating a prompt with a user role, a query of "What is the Capital of France?", a system role with the message "You are a helpful AI.", and an assistant role with the message "Bonjour, how can I help you today?".
@@ -226,13 +248,13 @@ Please note: The functions expect the prompt to be of type [System.Collections.A
 
 You can also use the "short-form" by just specifying the query, using the default values (Chat character):
 ```powershell
-[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
 ```
 
 ### Using previous messages to craft a prompt
 We can also create a prompt with previous messages by passing in an array of messages as the "previousMessages" parameter. Here's an example:
 ```powershell
-[System.Collections.ArrayList]$previousMessages = @(
+$previousMessages = @(
     @{
         role = "system"
         content = "You are a helpful AI."
@@ -251,7 +273,7 @@ In this example, we are creating a prompt with a user role and a query of "What 
 ### Using Default values
 If we want to create a simple prompt with just a query and using the default values for the other parameters:
 ```powershell
-[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
 ```
 
 ### Add a file to your prompt
