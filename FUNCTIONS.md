@@ -1,5 +1,5 @@
 # NOT UP TO DATE. CHECK SOURCE
-## New-CompletionAPIPrompt
+## New-OpenAICompletionPrompt
 This function is used to create a prompt for the `Invoke-CompletionAPI` function.
 
 ### Parameters
@@ -29,7 +29,7 @@ content                        What is the Capitol of Switzerland?
 role                           user
 ```
 
-## Invoke-CompletionAPI
+## Invoke-OpenAICompletion
 This PowerShell function is used to send a prompt to the OpenAI Completion API, get a response, and append it to the prompt.
 
 ### Parameters
@@ -80,7 +80,7 @@ role                           assistant
 
 ```
 
-## Set-CompletionAPICharacter
+## Set-OpenAICompletionCharacter
 This function generates a "Character" (a prompt that represents a character) to use. 
 These five characters are hardcoded into that function:
 - `Chat`: Instructed to be a helpful AI assistant
@@ -113,7 +113,7 @@ role                           assistant
 ```
 
 
-## New-CompletionAPIConversation
+## New-OpenAICompletionConversation
 
 This is a wrapper function that creates the prompt and calls the Open AI API using "New-CompletionAPIPrompt" and "Invoke-CompletionAPI".
 
@@ -163,7 +163,7 @@ content                        { "sentiment": 0.875 }
 role                           assistant
 ```
 
-## Add-CompletionAPIMessageToConversation
+## Add-OpenAICompletionMessageToConversation
 This function acts as a wrapper and adds a new message to an existing conversation or prompt using the given parameters. 
 
 ### Parameters
@@ -222,7 +222,7 @@ role                           assistant
 
 
 
-## Start-ChatGPTforPowerShell 
+## Start-ShellGPT
 This PowerShell function starts a conversation with the ChatGPT API, allowing users to interact with the model via PowerShell. The function accepts three mandatory parameters: APIKey, temperature, and max_tokens.
 
 The function prompts the user to either start a new conversation or restore an existing one. If the user chooses to restore an existing conversation, they must provide the full path to the prompt*.json file.
