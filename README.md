@@ -224,9 +224,9 @@ Tokens can be looked at as pieces of words. When the API processes a prompt, the
 - 1 token ~= ¾ words
 - 100 tokens ~= 75 words
 
-Then, when the API generates the completion for our prompt, this also uses tokens as the API generates them for the completion.
+When the API generates the completion for our prompt, this also uses tokens as the API generates them.
 
-As the `gpt-3.5-turbo` can at max. process and complete prompts with 4096 tokens, we need to ensure we do not hit that limit. So, we need to make sure that our prompt and the completion do not exceed the token limit. 
+As the `gpt-3.5-turbo` can at max. process and complete prompts with 4096 tokens, we need to ensure we do not hit that limit. So, we need to make sure that our prompt AND the completion do not exceed the token limit.
 
 Tokens are used as the unit for pricing and quotas for the OpenAI API. The specific pricing and quota details can be found on the OpenAI website. For example, for the `gpt-3.5-turbo` model, 1k tokens to be processed costs $0.002
 
