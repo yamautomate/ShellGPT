@@ -26,11 +26,26 @@ ShellGPT requires the following:
 - PowerShell 5.1 or higher
 - An OpenAI API key
 
+If yout want to include .PDFs in your prompts:
+- [iTextSharp.5.5.13.3](https://www.nuget.org/packages/iTextSharp#readme-body-tab) (itextsharp.dll) 
+- BouncyCastle.1.8.9 (BouncyCastle.Crypto.dll, dependency of itextsharp)
+
 ## Installation
 To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
 Install-Module ShellGPT
+```
+
+If you want to include .PDF's in your prompt, you also need to install the according .dll that provides the functionality for that. This Module currently uses "itextsharp.dll".
+
+1. Open PowerShell and run `Register-PackageSource` to register NuGet as a Package Source:
+```powershell
+Register-PackageSource -provider NuGet -name nugetRepository -location https://www.nuget.org/api/v2
+```
+2. Then install the .DLL from NuGet:
+```powershell
+ Install-Package Itextsharp
 ```
 
 ## How to start the interactive ChatBot for PowerShell
