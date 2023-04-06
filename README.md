@@ -2,13 +2,12 @@
 
 The [`ShellGPT`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
 
-The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts or applications.
-ShellGPT makes it easy to access the full potential of GPT from the comfort of your command line.
+The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts.
 
-This module is made by the community and not OpenAI.
+This module is made by an individual and not OpenAI.
 
 ## Endpoint and Model Compatibility
-This module supports almost every endpoints from OpenAI as seen in the table below. 
+This module supports the following endpoints from OpenAI as seen in the table below. 
 
 | Endpoint      | Model | cmdlets |
 | ------------- | ------------- |------------- |
@@ -94,7 +93,7 @@ You can now enter your prompt. You can also use the following commands:
 ### "file | " command
 Using the "file |" command, you can tell the ChatBot to parse a local file and use it within the prompt. That way you can ask it questions about a local pdf, csv, json or txt file.
 
-In the example below we ask it to summarize the content of the file "test.txt":
+In the example below we ask it to summarize the content of the file "test.txt" (Contains some PowerShell code):
 
 ```
 ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | test.txt | Summarize this:
@@ -216,7 +215,7 @@ To limit our spending, we can leverage the API Parameter `max_tokens`. With it, 
 ## How to construct prompts using the ShellGPT Module
 We have several ways of how we can create prompts with the CompletionAPI module.
 
-The easiest and most customizable one is to use the `New-CompletionAPIPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
+The easiest and most customizable one is to use the `New-OpenAICompletionPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
 
 Let's create a completely new prompt:
 ```powershell
@@ -227,7 +226,12 @@ In the above example, we are creating a prompt with a user role, a query of "Wha
 
 Please note: The functions expect the prompt to be of type [System.Collections.ArrayList]. WWhy? Because we can add and remove content easily without destroying the array again and again. So make sure you declare your variable that holds the prompt to be as of type [System.Collections.ArrayList] when you want to reuse your prompt as an input.
 
-### Using previous messages to fract a prompt
+You can also use the "short-form" by just specifying the query, using the default values (Chat character):
+```powershell
+[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
+```
+
+### Using previous messages to craft a prompt
 We can also create a prompt with previous messages by passing in an array of messages as the "previousMessages" parameter. Here's an example:
 ```powershell
 [System.Collections.ArrayList]$previousMessages = @(
@@ -263,7 +267,7 @@ Currently supported and tested file-types:
 
 Example:
 ```powershell
-[System.Collections.ArrayList]New-OpenAICompletionPrompt -query "What is this?" -filePath "C:\Users\Yanik\MyFile.pdf"
+New-OpenAICompletionPrompt -query "What is this?" -filePath "C:\Users\Yanik\MyFile.pdf"
 ```
 
 ## How to create a character using prompts
@@ -271,7 +275,7 @@ We can use this to create specific training prompts for the model.
 Here is an example, where we tell the model to act as a pirate:
 
 ```powershell
-[System.Collections.ArrayList]$previousMessages = @(
+$previousMessages = @(
     @{
         role = "system"
         content = "You are a helpful AI that was raised as a pirate. You append Awwwwr! to every respond you make."
@@ -324,5 +328,3 @@ content                        I am an AI language model designed to assist with
 
 # Function Documentation
 For detailled function documentation see the FUNCTIONS.md [here](https://github.com/yamautomate/PowerShell-OpenAI-API-Wrapper/blob/main/FUNCTIONS.md).
-
-
