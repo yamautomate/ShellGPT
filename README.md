@@ -24,7 +24,7 @@ This module supports almost every endpoints from OpenAI as seen in the table bel
 ShellGPT requires the following:
 
 - PowerShell 5.1 or higher
-- An OpenAI API key
+- An [OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key)
 - itextsharp.dll (only if you want to include .PDF's in your prompts)
 
 ## Installation
