@@ -1625,8 +1625,32 @@ function New-OpenAIEmbedding {
     
 }
 
-
 function Convert-PDFtoText {
+    <#
+    .SYNOPSIS
+    Converts a PDF file to a text, CSV, or JSON file.
+
+    .DESCRIPTION
+    The Convert-PDFtoText function takes a PDF file and converts it to a text file. You can also choose to export the data in CSV or JSON format. 
+    If the PDF file is empty, the function returns a message indicating that it either has no text or consists only of pictures or a scan.
+
+    .PARAMETER filePath
+    The path to the PDF file you want to convert. This is a mandatory parameter.
+
+    .PARAMETER TypeToExport
+    Specifies the file format to export the data to. Valid options are "txt", "csv", or "json". This is a mandatory parameter.
+
+    .INPUTS
+    This function does not accept input from the pipeline.
+
+    .OUTPUTS
+    The function outputs the converted text file in the specified format.
+
+    .EXAMPLE
+    Convert-PDFtoText -filePath "C:\Documents\example.pdf" -TypeToExport "txt"
+    This command converts the example.pdf file located in the C:\Documents folder to a text file.
+    #>
+
 	param(
 		[Parameter(Mandatory=$true)]
         [string]$filePath,
@@ -1816,7 +1840,7 @@ function Start-ShellGPT {
     This example starts a new conversation with the GPT-3.5 model "gpt-3.5-turbo" using the specified API key and sets the temperature to 0.8 and the maximum number of tokens to 1000.
 
     #>
-    
+
     param (
         [Parameter(Mandatory=$true)]    
         [string]$APIKey,                        
