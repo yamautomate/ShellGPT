@@ -49,12 +49,12 @@ Register-PackageSource -provider NuGet -name nugetRepository -location https://w
 
 ## How to start the interactive ChatBot for PowerShell
 
-We need to define the `$APIKey`, we obtained earlier first: 
+You need to define the `$APIKey` first: 
 ```powershell
 $APIKey = "YOUR_API_KEY"
 ```
 
-Then we can use `Start-ShellGPT` to start the command-line based ChatBot using the default values:
+Then you can use `Start-ShellGPT` to start the command-line based ChatBot using the default values:
 ```powershell
 Start-ShellGPT -APIKey $APIKey
 ```
@@ -77,7 +77,7 @@ $temperature = 0.1
 $max_tokens = 200
 ```
 
-Then we can use `Start-ShellGPT` and pass along the parameters we defined above:
+Then you can use `Start-ShellGPT` and pass along the parameters you defined above:
 ```powershell
 Start-ShellGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
 ```
@@ -104,8 +104,7 @@ CompletionAPI @ 03/30/2023 20:16:19 | This code attempts to create a new file wi
 ```
 
 ### "out | " command
-Using the "out |" command, you can tell the ChatBot to export the output to your prompt to a local file. For example, we can ask it to remove the try/catch block from our "test.txt" and generate the output, so that we then can store it in "
-notry.ps1":
+Using the "out |" command, you can tell the ChatBot to export the output to your prompt to a local file. For example, you can ask it to remove the try/catch block from our "test.txt" and generate the output, so that you then can store it in "notry.ps1":
 
 ```
 ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | C:\users\yanik\test.txt | remove the try/catch block. Do not append any additional text or reasoning | out | C:\users\yanik\notry.ps1
@@ -116,10 +115,9 @@ Autoregressive models like the ones used by OpenAI are trained to predict the pr
 
 The API uses a prompt as a starting point for generating text. A prompt is a piece of text that serves as the input to the OpenAI model. It can be a single sentence or a longer document, and it can include any kind of text that provides context or guidance for the model. The model generates additional text one token at a time based on the probabilities of the next token given the preceding tokens.
 
-OpenAI's Model is trained on massive amounts of text data, so it has learned to predict the probability distribution of the next token based on patterns it has observed in that data.
-
 The quality and relevance of the generated text can depend heavily on the quality and specificity of the prompt, as well as the amount and type of training data that the model has been exposed to.
 
+OpenAI's Model is trained on massive amounts of text data, so it has learned to predict the probability distribution of the next token based on patterns it has observed in that data.
 
 ## Understanding prompts
 Before we construct a prompt, we need to define what that actually is.
