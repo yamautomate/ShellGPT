@@ -1748,5 +1748,3 @@ function Start-ShellGPT {
         [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 }
-
-$APIKey = "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"
