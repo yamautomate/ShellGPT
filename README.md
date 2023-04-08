@@ -2,13 +2,12 @@
 
 The [`ShellGPT`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
 
-The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts or applications.
-ShellGPT makes it easy to access the full potential of GPT from the comfort of your command line.
+The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts.
 
-This module is made by the community and not OpenAI.
+This module is made by an individual and not OpenAI.
 
 ## Endpoint and Model Compatibility
-This module supports almost every endpoints from OpenAI as seen in the table below. 
+This module supports the following endpoints from OpenAI as seen in the table below. 
 
 | Endpoint      | Model | cmdlets |
 | ------------- | ------------- |------------- |
@@ -23,9 +22,13 @@ This module supports almost every endpoints from OpenAI as seen in the table bel
 ## Requirements
 ShellGPT requires the following:
 
-- PowerShell 5.1 or higher
+- PowerShell 7.3.3 or higher
 - An [OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key)
-- itextsharp.dll (only if you want to include .PDF's in your prompts)
+
+If yout want to include .PDFs in your prompts:
+- [iTextSharp.5.5.13.3](https://www.nuget.org/packages/iTextSharp#readme-body-tab) (itextsharp.dll) 
+- BouncyCastle.1.8.9 (BouncyCastle.Crypto.dll, dependency of itextsharp)
+
 
 ## Installation
 To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
@@ -47,12 +50,12 @@ Register-PackageSource -provider NuGet -name nugetRepository -location https://w
 
 ## How to start the interactive ChatBot for PowerShell
 
-We need to define the `$APIKey`, we obtained earlier first: 
+You need to define the `$APIKey` first: 
 ```powershell
 $APIKey = "YOUR_API_KEY"
 ```
 
-Then we can use `Start-ShellGPT` to start the command-line based ChatBot using the default values:
+Then you can use `Start-ShellGPT` to start the command-line based ChatBot using the default values:
 ```powershell
 Start-ShellGPT -APIKey $APIKey
 ```
@@ -75,7 +78,7 @@ $temperature = 0.1
 $max_tokens = 200
 ```
 
-Then we can use `Start-ShellGPT` and pass along the parameters we defined above:
+Then you can use `Start-ShellGPT` and pass along the parameters you defined above:
 ```powershell
 Start-ShellGPT -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop
 ```
@@ -91,7 +94,7 @@ You can now enter your prompt. You can also use the following commands:
 ### "file | " command
 Using the "file |" command, you can tell the ChatBot to parse a local file and use it within the prompt. That way you can ask it questions about a local pdf, csv, json or txt file.
 
-In the example below we ask it to summarize the content of the file "test.txt":
+In the example below we ask it to summarize the content of the file "test.txt" (Contains some PowerShell code):
 
 ```
 ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | test.txt | Summarize this:
@@ -102,22 +105,42 @@ CompletionAPI @ 03/30/2023 20:16:19 | This code attempts to create a new file wi
 ```
 
 ### "out | " command
-Using the "out |" command, you can tell the ChatBot to export the output to your prompt to a local file. For example, we can ask it to remove the try/catch block from our "test.txt" and generate the output, so that we then can store it in "
-notry.ps1":
+Using the "out |" command, you can tell the ChatBot to export the output to your prompt to a local file. For example, you can ask it to remove the try/catch block from our "test.txt" and generate the output, so that you then can store it in "notry.ps1":
 
 ```
 ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: file | C:\users\yanik\test.txt | remove the try/catch block. Do not append any additional text or reasoning | out | C:\users\yanik\notry.ps1
 ```
+
+### "export | " command
+Using the "export |" command, you can tell the ChatBot to export your current prompt to a local file:
+```
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: export |
+ShellGPT @ 04/06/2023 20:36:52 | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: C:\Users\Yanik\MyPrompt.json
+```
+You can then later use that prompt to continue your conversation by importing it during the start of a new conversation
+
+### "newconvo | " command
+This command drops the current prompt and starts a new conversation.
+```
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: newconvo |
+ShellGPT @ 04/06/2023 20:40:41 | Do you want to restore an existing conversation? (enter 'y' or 'yes'): 
+```
+   
+### "quit | " command
+The ChatBot exits.
+```
+ShellGPT @ 03/30/2023 20:14:34 | Your query for ChatGPT or commands for ShellGPT: quit |
+```
+   
 
 ## Understanding how the OpenAI API generates completions
 Autoregressive models like the ones used by OpenAI are trained to predict the probability distribution of the next token given the preceding tokens. For example, a language model can predict the next word in a sentence given the preceding words. 
 
 The API uses a prompt as a starting point for generating text. A prompt is a piece of text that serves as the input to the OpenAI model. It can be a single sentence or a longer document, and it can include any kind of text that provides context or guidance for the model. The model generates additional text one token at a time based on the probabilities of the next token given the preceding tokens.
 
-OpenAI's Model is trained on massive amounts of text data, so it has learned to predict the probability distribution of the next token based on patterns it has observed in that data.
-
 The quality and relevance of the generated text can depend heavily on the quality and specificity of the prompt, as well as the amount and type of training data that the model has been exposed to.
 
+OpenAI's Model is trained on massive amounts of text data, so it has learned to predict the probability distribution of the next token based on patterns it has observed in that data.
 
 ## Understanding prompts
 Before we construct a prompt, we need to define what that actually is.
@@ -202,9 +225,9 @@ Tokens can be looked at as pieces of words. When the API processes a prompt, the
 - 1 token ~= ¾ words
 - 100 tokens ~= 75 words
 
-Then, when the API generates the completion for our prompt, this also uses tokens as the API generates them for the completion.
+When the API generates the completion for our prompt, this also uses tokens as the API generates them.
 
-As the `gpt-3.5-turbo` can at max. process and complete prompts with 4096 tokens, we need to ensure we do not hit that limit. So, we need to make sure that our prompt and the completion do not exceed the token limit. 
+As the `gpt-3.5-turbo` can at max. process and complete prompts with 4096 tokens, we need to ensure we do not hit that limit. So, we need to make sure that our prompt AND the completion do not exceed the token limit.
 
 Tokens are used as the unit for pricing and quotas for the OpenAI API. The specific pricing and quota details can be found on the OpenAI website. For example, for the `gpt-3.5-turbo` model, 1k tokens to be processed costs $0.002
 
@@ -213,21 +236,26 @@ To limit our spending, we can leverage the API Parameter `max_tokens`. With it, 
 ## How to construct prompts using the ShellGPT Module
 We have several ways of how we can create prompts with the CompletionAPI module.
 
-The easiest and most customizable one is to use the `New-CompletionAPIPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
+The easiest and most customizable one is to use the `New-OpenAICompletionPrompt` function. It lets you create a prompt from scratch, or append a query to a prompt.
 
 Let's create a completely new prompt:
 ```powershell
-[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?" -role "user" -instructor "You are a helpful AI." -assistantReply "Bonjour, how can I help you today?"
 ```
 
 In the above example, we are creating a prompt with a user role, a query of "What is the Capital of France?", a system role with the message "You are a helpful AI.", and an assistant role with the message "Bonjour, how can I help you today?".
 
 Please note: The functions expect the prompt to be of type [System.Collections.ArrayList]. WWhy? Because we can add and remove content easily without destroying the array again and again. So make sure you declare your variable that holds the prompt to be as of type [System.Collections.ArrayList] when you want to reuse your prompt as an input.
 
-### Using previous messages to fract a prompt
+You can also use the "short-form" by just specifying the query, using the default values (Chat character):
+```powershell
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
+```
+
+### Using previous messages to craft a prompt
 We can also create a prompt with previous messages by passing in an array of messages as the "previousMessages" parameter. Here's an example:
 ```powershell
-[System.Collections.ArrayList]$previousMessages = @(
+$previousMessages = @(
     @{
         role = "system"
         content = "You are a helpful AI."
@@ -246,7 +274,7 @@ In this example, we are creating a prompt with a user role and a query of "What 
 ### Using Default values
 If we want to create a simple prompt with just a query and using the default values for the other parameters:
 ```powershell
-[System.Collections.ArrayList]$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
+$prompt = New-OpenAICompletionPrompt -query "What is the Capital of France?"
 ```
 
 ### Add a file to your prompt
@@ -260,7 +288,7 @@ Currently supported and tested file-types:
 
 Example:
 ```powershell
-[System.Collections.ArrayList]New-OpenAICompletionPrompt -query "What is this?" -filePath "C:\Users\Yanik\MyFile.pdf"
+New-OpenAICompletionPrompt -query "What is this?" -filePath "C:\Users\Yanik\MyFile.pdf"
 ```
 
 ## How to create a character using prompts
@@ -268,7 +296,7 @@ We can use this to create specific training prompts for the model.
 Here is an example, where we tell the model to act as a pirate:
 
 ```powershell
-[System.Collections.ArrayList]$previousMessages = @(
+$previousMessages = @(
     @{
         role = "system"
         content = "You are a helpful AI that was raised as a pirate. You append Awwwwr! to every respond you make."
@@ -321,5 +349,3 @@ content                        I am an AI language model designed to assist with
 
 # Function Documentation
 For detailled function documentation see the FUNCTIONS.md [here](https://github.com/yamautomate/PowerShell-OpenAI-API-Wrapper/blob/main/FUNCTIONS.md).
-
-
