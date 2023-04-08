@@ -15,7 +15,7 @@ This module supports the following endpoints from OpenAI as seen in the table be
 | /v1/edits	 | 	text-davinci-edit-00, code-davinci-edit-001  | `New-OpenAIEdit` |
 | /v1/images/generations | 		DALL-E  | `New-OpenAIImage` |
 | /v1/embeddings | text-embedding-ada-002	| `New-OpenAIEmbedding` |
-| /v1/models | 		-  | `Get-OpenAIModels`, `Get-OppenAIModelById` |
+| /v1/models | 		-  | `Get-OpenAIModels`, `Get-OpenAIModelById` |
 | /v1/files | 		-  | `Get-OpenAIFiles`, `Get-OpenAIFileById`, `Get-OpenAIFileContent`, `New-OpenAIFile`, `Remove-OpenAIFile`  |
 | /v1/fine-tunes | 		davinci, curie, babbage, ada  | `New-OpenAIFineTuneJob`, `Get-OpenAIFineTuneJobs`, `Get-OpenAIFineTuneJobById`,`Get-OpenAIFineTuneEvents`,`Remove-OpenAIFineTuneModel`,`Stop-OpenAIFineTuneJob` |
 
