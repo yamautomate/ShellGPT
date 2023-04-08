@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.3'
+    ModuleVersion = '1.3.2'
     GUID = 'a038bbff-4e60-4201-944e-b2e6a01ed20c'
     RootModule = 'ShellGPT.psm1'
     FunctionsToExport = @('Invoke-OpenAICompletion', 'New-OpenAICompletionPrompt', 'Set-OpenAICompletionCharacter', 'New-OpenAICompletionConversation', 'Add-OpenAICompletionMessageToConversation', 'New-OpenAIEdit', 'New-OpenAIImage', 'Get-OpenAIModels', 'Get-OpenAIModelById', 'Get-OpenAIFiles','Get-OpenAIFileById', 'Get-OpenAIFileContent', 'New-OpenAIFile', 'Remove-OpenAIFile', 'Get-OpenAIFineTuneJobs','Get-OpenAIFineTuneJobById','Get-OpenAIFineTuneEvents', 'Remove-OpenAIFineTuneModel', 'Stop-OpenAIFineTuneJob', 'New-OpenAIFineTuneJob', 'New-OpenAIFineTuneTrainingFile', 'Import-OpenAIPromptFromJson', 'Export-OpenAIPromptToJson', 'New-OpenAIEmbedding', 'Convert-PDFtoText', 'Get-ShellGPTHelpMessage', 'Start-ShellGPT')
