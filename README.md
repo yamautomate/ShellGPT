@@ -29,6 +29,7 @@ If yout want to include .PDFs in your prompts:
 - [iTextSharp.5.5.13.3](https://www.nuget.org/packages/iTextSharp#readme-body-tab) (itextsharp.dll) 
 - BouncyCastle.1.8.9 (BouncyCastle.Crypto.dll, dependency of itextsharp)
 
+
 ## Installation
 To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
 1. Open PowerShell and run `Install-Module`:
