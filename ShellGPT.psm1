@@ -2,40 +2,28 @@ function Invoke-OpenAICompletion {
     <#
     .SYNOPSIS
     The Invoke-OpenAICompletion function sends a prompt to the OpenAI Completion API to generate a text completion. The function requires an API key to access the API and accepts various optional parameters such as model, stop token, temperature, and max_tokens to customize the generated text completion.
-
     .DESCRIPTION
     The Invoke-OpenAICompletion function sends a prompt to the OpenAI Completion API to generate a text completion. It takes a prompt as input, which is a list of strings containing the context of the completion. The function requires an API key to access the API and accepts various optional parameters such as model, stop token, temperature, and max_tokens to customize the generated text completion. The response from the API is used to update the prompt, and the updated prompt is returned as output. The function also provides options to display the output and token usage details.
-
     .PARAMETER prompt
     The prompt parameter is a mandatory parameter that accepts a list of strings containing the context of the completion. This parameter is used as input for generating the text completion.
-
     .PARAMETER APIKey
     The APIKey parameter is a mandatory parameter that accepts an API key to authenticate the request to the OpenAI Completion API.
-
     .PARAMETER model
     The model parameter is an optional parameter that specifies the model to use for generating the text completion. The default value is set to "gpt-3.5-turbo".
-
     .PARAMETER stop
     The stop parameter is an optional parameter that specifies a stop token that the API should use to stop generating the text completion. The default value is set to "\n".
-
     .PARAMETER temperature
     The temperature parameter is an optional parameter that controls the randomness of the generated text completion. The default value is set to 0.4.
-
     .PARAMETER max_tokens
     The max_tokens parameter is an optional parameter that specifies the maximum number of tokens that the API can generate in the text completion. The default value is set to 900.
-
     .PARAMETER ShowOutput
     The ShowOutput parameter is an optional boolean parameter that specifies whether to display the generated output from the API. The default value is set to false.
-
     .PARAMETER ShowTokenUsage
     The ShowTokenUsage parameter is an optional boolean parameter that specifies whether to display the token usage details. The default value is set to false.
-
     .INPUTS
     The function does not accept any pipeline input.
-
     .OUTPUTS
     The function returns an updated prompt as output.
-
     .EXAMPLE
     The following example shows how to use the Invoke-OpenAICompletion function to generate a text completion for a given prompt:
         
@@ -79,6 +67,7 @@ function Invoke-OpenAICompletion {
  
     #Convert the whole Body to be JSON, so that API can interpret it
     $RequestBody = $RequestBody | ConvertTo-Json -depth 3 
+    $Requestbody = [System.Text.Encoding]::UTF8.GetBytes($RequestBody)
 
     $uri = 'https://api.openai.com/v1/chat/completions'
 
@@ -147,34 +136,24 @@ function New-OpenAICompletionPrompt {
     <#
     .SYNOPSIS
     Creates a prompt for an OpenAI completion API.
-
     .DESCRIPTION
     This PowerShell function generates a prompt to be sent to an OpenAI completion API using the user's query and additional input if applicable.
-
     .PARAMETER query
     Specifies the user's query to be used in the prompt.
-
     .PARAMETER role
     Specifies the role to be added to the prompt. This parameter is optional, and the default value is "user".
-
     .PARAMETER instructor
     Specifies the instruction string to be added to the prompt. This parameter is optional, and the default value is "You are ChatGPT, a helpful AI Assistant."
-
     .PARAMETER assistantReply
     Specifies the first, unseen reply by the model. This parameter is optional, and the default value is "Hello! I'm ChatGPT, a GPT Model. How can I assist you today?"
-
     .PARAMETER previousMessages
     Specifies an array of previous messages in the conversation. This parameter is optional.
-
     .PARAMETER filePath
     Specifies the file path for a file containing additional input. This parameter is optional.
-
     .PARAMETER model
     Specifies the name of the OpenAI model to use for completion. This parameter is optional.
-
     .INPUTS
     This function does not accept input by pipeline.
-
     .OUTPUTS
     The function returns a [System.Collections.ArrayList] prompt as output.
     #>
@@ -196,8 +175,6 @@ function New-OpenAICompletionPrompt {
         [Parameter(Mandatory=$false)]    
         [string]$model      
         )
-
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
     if ($filePath)
     {
@@ -248,24 +225,7 @@ function New-OpenAICompletionPrompt {
             }    
         }
     }
-    #Remove characters the API can not interpret:
-    $query = $query -replace '(?m)^\s+',''
-    $query = $query -replace '\r',''
-    $query = $query -replace '●',''
-    $query = $query -replace '“',"'"
-    $query = $query -replace '”',"'"
-    $query = $query -replace 'ä',"ae"
-    $query = $query -replace 'ö',"oe"
-    $query = $query -replace 'ü',"ue"
-    $query = $query -replace 'ß',"ss"
-    $query = $query -replace '\u00A0', ' '
-
-    $iso = [System.Text.Encoding]::GetEncoding("iso-8859-1")
-    $bytes = $iso.GetBytes($query)
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($query)
-
-    $query = [System.Text.Encoding]::utf8.GetString($bytes)
-  
+   
     if ($previousMessages)
     {
         Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Previous Messages are present: "+($previousMessages | Out-String))
@@ -306,31 +266,23 @@ function Set-OpenAICompletionCharacter {
     <#
     .SYNOPSIS
     This function, Set-OpenAICompletionCharacter, sets the response mode and prompts for a ChatGPT-3.5 model.
-
     .DESCRIPTION
     This function allows the user to set the mode for the response and prompts for a ChatGPT-3.5 model. 
     The response mode can be one of the following: Chat, SentimentAndTickerAnalysis, SentimentAnalysis, IntentAnalysis, or IntentAndSubjectAnalysis. 
     Depending on the selected mode, the function will generate pre-defined (hardcoded) prompts for the user to use.
-
     .PARAMETER mode
     This parameter specifies the mode for the response. It is a required parameter and must be one of the following values: Chat, SentimentAndTickerAnalysis, SentimentAnalysis, IntentAnalysis, or IntentAndSubjectAnalysis.
-
     .PARAMETER instructor
     This parameter specifies the text prompt for the ChatGPT-3.5 model. It is an optional parameter and defaults to "You are a helpful AI. You answer as concisely as possible." if not specified.
-
     .PARAMETER assistantReply
     This parameter specifies the response of the ChatGPT-3.5 model. It is an optional parameter and defaults to "Hello! I'm a ChatGPT-3.5 Model. How can I help you?" if not specified.
-
     .INPUTS
     This function does not take any input.
-
     .OUTPUTS
     This function returns a list of text prompts and responses in a .JSON format. The structure of the .JSON object varies depending on the selected mode.
-
     .EXAMPLE
     PS C:> Set-OpenAICompletionCharacter -mode Chat -instructor "How can I assist you today?" -assistantReply "I can help you with a variety of tasks such as answering questions or providing information on a specific topic."
     This example sets the response mode to "Chat" and generates a prompt for the ChatGPT-3.5 model with the instructor text "How can I assist you today?" and the assistant reply "I can help you with a variety of tasks such as answering questions or providing information on a specific topic."
-
     .LINK
     #>
     param (
@@ -404,55 +356,38 @@ function New-OpenAICompletionConversation {
     <#
     .SYNOPSIS
     This function creates a new conversation with the OpenAI Completion API to generate AI-assisted responses to user queries.
-
     .DESCRIPTION
     The New-OpenAICompletionConversation function allows users to initiate a new conversation with the OpenAI Completion API. The function takes in user queries, an API key, and various optional parameters that modify the behavior of the API.
-
     .PARAMETER Character
     This parameter is optional and allows users to specify a pre-defined character model for generating responses. Valid options are "Chat", "SentimentAndTickerAnalysis", "SentimentAnalysis", "IntentAnalysis", and "IntentAndSubjectAnalysis".
-
     .PARAMETER query
     This parameter is mandatory and specifies the user query for which the OpenAI Completion API will generate responses.
-
     .PARAMETER APIKey
     This parameter is mandatory and specifies the API key that the function will use to authenticate with the OpenAI Completion API.
-
     .PARAMETER instructor
     This parameter is optional and specifies the role of the AI. By default, it is set to "You are a helpful AI. You answer as concisely as possible."
-
     .PARAMETER assistantReply
     This parameter is optional and specifies the initial message that the AI will send to the user. By default, it is set to "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
-
     .PARAMETER model
     This parameter is optional and allows users to specify a different GPT-3.5 model to use for generating responses. By default, it is set to "gpt-3.5-turbo".
-
     .PARAMETER stop
     This parameter is optional and specifies a string that the OpenAI Completion API will use to indicate the end of a response. By default, it is set to "\n".
-
     .PARAMETER temperature
     This parameter is optional and specifies the "creativity" of the AI-generated responses. Valid values are between 0 and 1, with higher values indicating more creative responses. By default, it is set to 0.4.
-
     .PARAMETER max_tokens
     This parameter is optional and specifies the maximum number of tokens (words) that the OpenAI Completion API will use to generate a response. By default, it is set to 900.
-
     .PARAMETER filePath
     This parameter is optional and specifies the path to a file that contains previous conversation messages. If provided, the function will use these messages to generate more context-aware responses.
-
     .PARAMETER ShowOutput
     This parameter is optional and specifies whether or not to display the output of the OpenAI Completion API.
-
     .PARAMETER ShowTokenUsage
     This parameter is optional and specifies whether or not to display the number of tokens used by the OpenAI Completion API to generate a response.
-
     .INPUTS
     None.
-
     .OUTPUTS
     The function returns an updated prompt with the user query and the response from the CompletionAPI.
-
     .EXAMPLE
     PS C:> New-OpenAICompletionConversation -query "What is the weather like today?" -APIKey "YOUR_API_KEY"
-
     This example initiates a new conversation with the OpenAI Completion API and generates AI-generated responses to the query "What is the weather like today?".
     
     #>
@@ -537,51 +472,36 @@ function Add-OpenAICompletionMessageToConversation {
     <#
     .SYNOPSIS
     This function adds a user query to a conversation with previous messages and obtains a response using the OpenAI Completion API.
-
     .DESCRIPTION
     The Add-OpenAICompletionMessageToConversation function takes in a user query, an array of previous messages in the conversation, an API key for the OpenAI Completion API, and various optional parameters to generate a response from the API. 
     The function then returns the response from the API along with the updated previous messages.
-
     .PARAMETER query
     The user's query to be added to the conversation.
-
     .PARAMETER previousMessages
     An array of previous messages in the conversation.
-
     .PARAMETER APIKey
     API key for the OpenAI Completion API.
-
     .PARAMETER model
     The model to use from the endpoint. Default value is "gpt-3.5-turbo".
-
     .PARAMETER stop
     The stop instructor for the model. Default value is "\n".
-
     .PARAMETER temperature
     The temperature value to use for sampling. Default value is 0.4.
-
     .PARAMETER max_tokens
     The maximum number of tokens to generate in the response. Default value is 900.
-
     .PARAMETER filePath
     The path to the file containing the previous messages in the conversation.
-
     .PARAMETER ShowOutput
     A switch parameter to determine if the output of the OpenAI Completion API should be displayed. Default value is $false.
-
     .PARAMETER ShowTokenUsage
     A switch parameter to determine if the number of tokens used in the response should be displayed. Default value is $false.
-
     .INPUTS
     None. The function does not accept pipeline input.
-
     .OUTPUTS
     The function returns a System.Collections.ArrayList object containing the response from the OpenAI Completion API and the updated previous messages in the conversation.
-
     .EXAMPLE
     $previousMessages = New-OpenAICompletionConversation -query "Hello, how are you?" -previousMessages $previousMessages -APIKey "YOUR_API_KEY"
     Add-OpenAICompletionMessageToConversation -query "Alright. Whats the capitol of Switzerland?" -previousMessages $previousMessages -APIKey "YOUR_API_KEY"
-
     This example adds a user query "Alright. Whats the capitol of Switzerland?" to a conversation with previous messages "Hello, how are you?" The function then obtains a response using the OpenAI Completion API and displays the output.
     #>
 
@@ -636,38 +556,28 @@ function New-OpenAIEdit {
     <#
     .SYNOPSIS
     This PowerShell function connects to the OpenAI Edit API to execute a given instruction on a specified model using a given prompt, with the option to specify temperature for sampling.
-
     .DESCRIPTION
     The New-OpenAIEdit function allows users to interact with the OpenAI Edit API, which takes a prompt as input and applies an instruction to it, generating a new output. This function handles the API request by constructing the necessary HTTP request headers and body and parsing the API response. The user must provide a prompt, an API key for authentication, an instruction for the model, and can optionally specify a model and temperature value for sampling.
-
     .PARAMETER query
     The prompt to send to the API to act upon.
-
     .PARAMETER APIKey
     The API key to authenticate the request.
-
     .PARAMETER instruction
     The instruction for the model like "Fix the grammar".
-
     .PARAMETER model
     The model to use from the endpoint. This parameter is optional and has a default value of "text-davinci-edit-001" if not specified. Valid options for this parameter are "text-davinci-edit-001" and "code-davinci-edit-001".
-
     .PARAMETER temperature
     The temperature value to use for sampling. This parameter is optional and has a default value of 0.4 if not specified.
-
     .INPUTS
     This function does not take any input from the pipeline.
-
     .OUTPUTS
     The function outputs the response text generated by the API in response to the prompt provided by the user.
-
     .EXAMPLE
     Example usage:
     $APIKey = "myAPIKey1234"
     $prompt = "The quick brown fox jumps over the lazy dog."
     $instruction = "Fix the grammar."
     New-OpenAIEdit -query $prompt -APIKey $APIKey -instruction $instruction
-
     This command sends a prompt to the OpenAI Edit API with the instruction to fix the grammar. The function returns the edited text response generated by the API.
     #>
 
@@ -1629,23 +1539,17 @@ function Convert-PDFtoText {
     <#
     .SYNOPSIS
     Converts a PDF file to a text, CSV, or JSON file.
-
     .DESCRIPTION
     The Convert-PDFtoText function takes a PDF file and converts it to a text file. You can also choose to export the data in CSV or JSON format. 
     If the PDF file is empty, the function returns a message indicating that it either has no text or consists only of pictures or a scan.
-
     .PARAMETER filePath
     The path to the PDF file you want to convert. This is a mandatory parameter.
-
     .PARAMETER TypeToExport
     Specifies the file format to export the data to. Valid options are "txt", "csv", or "json". This is a mandatory parameter.
-
     .INPUTS
     This function does not accept input from the pipeline.
-
     .OUTPUTS
     The function outputs the converted text file in the specified format.
-
     .EXAMPLE
     Convert-PDFtoText -filePath "C:\Documents\example.pdf" -TypeToExport "txt"
     This command converts the example.pdf file located in the C:\Documents folder to a text file.
@@ -1777,68 +1681,49 @@ function Start-ShellGPT {
     .SYNOPSIS
     Start-ShellGPT is a PowerShell function that allows users to communicate with OpenAI's GPT-3.5 model. Users can select a character for the model to assume and provide queries or commands for the model to complete. 
     The function also allows users to continue a previous conversation by providing the path to a JSON file containing the previous conversation.
-
     .DESCRIPTION
     Start-ShellGPT is a PowerShell function that provides users with a shell interface to communicate with OpenAI's GPT-3.5 model. 
     Users can specify a character for the model to assume and provide queries or commands for the model to complete. 
     The function supports several parameters that allow users to configure the behavior of the model, including the temperature and maximum number of tokens. 
     Additionally, users can continue a previous conversation by providing the path to a JSON file containing the previous conversation.
-
     .PARAMETER APIKey
     The APIKey parameter is mandatory and specifies the API key to use when communicating with the OpenAI API.
-
     .PARAMETER model
     The model parameter is optional and specifies the name of the GPT-3.5 model to use. The default value is "gpt-3.5-turbo".
-
     .PARAMETER stop
     The stop parameter is optional and specifies the string used to stop the model from generating additional output. 
     The default value is "\n".
-
     .PARAMETER temperature
     The temperature parameter is optional and specifies the "temperature" to use when generating text. 
     The default value is 0.4.
-
     .PARAMETER max_tokens
     The max_tokens parameter is optional and specifies the maximum number of tokens to generate. 
     The default value is 900.
-
     .PARAMETER ShowOutput
     The ShowOutput parameter is optional and specifies whether to show the output of the model. 
     The default value is $false.
-
     .PARAMETER ShowTokenUsage
     The ShowTokenUsage parameter is optional and specifies whether to show the token usage of the model. 
     The default value is $false.
-
     .PARAMETER instructor
     The instructor parameter is optional and specifies the prompt that the model uses to generate text. 
     The default value is "You are a helpful AI. You answer as concisely as possible."
-
     .PARAMETER assistantReply
     The assistantReply parameter is optional and specifies the initial reply of the model when a new conversation is started. 
     The default value is "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
-
     .INPUTS
     Start-ShellGPT does not take any input by pipeline.
-
     .OUTPUTS
     Start-ShellGPT does not output anything to the pipeline.
-
     .EXAMPLE
     Start-ShellGPT -APIKey "my_api_key"
-
     This example starts a new conversation with the GPT-3.5 model using the specified API key.
-
     .EXAMPLE
     Start-ShellGPT -APIKey "my_api_key" -model "gpt-3.5"
-
     This example starts a new conversation with the GPT-3.5 model named "gpt-3.5" using the specified API key.
-
     .EXAMPLE
     Start-ShellGPT -APIKey "your_api_key"  -temperature 0.8 -max_tokens 1000
-
     This example starts a new conversation with the GPT-3.5 model "gpt-3.5-turbo" using the specified API key and sets the temperature to 0.8 and the maximum number of tokens to 1000.
-
     #>
 
     param (
