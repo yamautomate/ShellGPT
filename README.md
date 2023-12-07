@@ -31,7 +31,7 @@ If yout want to include .PDFs in your prompts:
 
 
 ## Installation
-To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
+To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Module`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
 Install-Module ShellGPT
