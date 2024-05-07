@@ -1,84 +1,102 @@
 function Invoke-OpenAICompletion {
     <#
     .SYNOPSIS
-    The Invoke-OpenAICompletion function sends a prompt to the OpenAI Completion API to generate a text completion. The function requires an API key to access the API and accepts various optional parameters such as model, stop token, temperature, and max_tokens to customize the generated text completion.
+    This function sends a prompt to the OpenAI Completion API or Azure OpenAI API to generate a text completion based on the specified settings.
+
     .DESCRIPTION
-    The Invoke-OpenAICompletion function sends a prompt to the OpenAI Completion API to generate a text completion. It takes a prompt as input, which is a list of strings containing the context of the completion. The function requires an API key to access the API and accepts various optional parameters such as model, stop token, temperature, and max_tokens to customize the generated text completion. The response from the API is used to update the prompt, and the updated prompt is returned as output. The function also provides options to display the output and token usage details.
+    The Invoke-OpenAICompletion function sends a prompt to the OpenAI Completion API or Azure OpenAI API to generate a text completion. It takes a prompt as input, which is a list of strings containing the context of the completion. The function requires an API key to access the API and accepts various optional parameters to customize the generated text completion. The response from the API is used to update the prompt, and the updated prompt is returned as output.
+
     .PARAMETER prompt
     The prompt parameter is a mandatory parameter that accepts a list of strings containing the context of the completion. This parameter is used as input for generating the text completion.
+
     .PARAMETER APIKey
     The APIKey parameter is a mandatory parameter that accepts an API key to authenticate the request to the OpenAI Completion API.
+
     .PARAMETER model
-    The model parameter is an optional parameter that specifies the model to use for generating the text completion. The default value is set to "gpt-3.5-turbo".
+    The model parameter is an optional parameter that specifies the model to use for generating the text completion.
+
     .PARAMETER stop
-    The stop parameter is an optional parameter that specifies a stop token that the API should use to stop generating the text completion. The default value is set to "\n".
+    The stop parameter is an optional parameter that specifies a stop token that the API should use to stop generating the text completion.
+
     .PARAMETER temperature
-    The temperature parameter is an optional parameter that controls the randomness of the generated text completion. The default value is set to 0.4.
+    The temperature parameter is an optional parameter that controls the randomness of the generated text completion.
+
     .PARAMETER max_tokens
-    The max_tokens parameter is an optional parameter that specifies the maximum number of tokens that the API can generate in the text completion. The default value is set to 900.
+    The max_tokens parameter is an optional parameter that specifies the maximum number of tokens that the API can generate in the text completion.
+
     .PARAMETER ShowOutput
-    The ShowOutput parameter is an optional boolean parameter that specifies whether to display the generated output from the API. The default value is set to false.
+    The ShowOutput parameter is an optional boolean parameter that specifies whether to display the generated output from the API.
+
     .PARAMETER ShowTokenUsage
-    The ShowTokenUsage parameter is an optional boolean parameter that specifies whether to display the token usage details. The default value is set to false.
-    .INPUTS
-    The function does not accept any pipeline input.
-    .OUTPUTS
-    The function returns an updated prompt as output.
+    The ShowTokenUsage parameter is an optional boolean parameter that specifies whether to display the token usage details.
+
+    .PARAMETER UseAzure
+    The UseAzure parameter is an optional boolean parameter that specifies whether to use the Azure OpenAI API endpoint instead of the OpenAI API.
+
     .EXAMPLE
-    The following example shows how to use the Invoke-OpenAICompletion function to generate a text completion for a given prompt:
-        
+    # Example of how to use the function to generate a text completion
     #>
+
     param(
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [System.Collections.ArrayList]$prompt, 
-        [Parameter(Mandatory=$true)]
-        [string]$APIKey,                        
-        [Parameter(Mandatory=$false)]
-        [string]$model = "gpt-3.5-turbo",      
-        [Parameter(Mandatory=$false)]
-        [string]$stop = "\n",                 
-        [Parameter(Mandatory=$false)]
-        [double]$temperature = 0.4,            
-        [Parameter(Mandatory=$false)]
-        [int]$max_tokens = 900,               
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowOutput = $false,            
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false         
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] [System.Collections.ArrayList]$prompt, 
+        [Parameter(Mandatory=$true)] [string]$APIKey,                        
+        [Parameter(Mandatory=$false)][string]$model = "gpt-3.5-turbo",      
+        [Parameter(Mandatory=$false)][string]$stop = "\n",                 
+        [Parameter(Mandatory=$false)][double]$temperature = 0.4,            
+        [Parameter(Mandatory=$false)][int]$max_tokens = 900,               
+        [Parameter(Mandatory=$false)][bool]$ShowOutput = $false,            
+        [Parameter(Mandatory=$false)][bool]$ShowTokenUsage = $false,         
+        [Parameter(Mandatory=$false)][string]$UseAzure,
+        [Parameter(Mandatory=$false)][string]$DeploymentName
     )
 
-    Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Building request for sending off towards CompletionAPI...") 
+    Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Building request...") 
 
-    #Building Request for API
-    $headers = @{
-        "Content-Type" = "application/json"
-        "Authorization" = "Bearer $APIKey"
+    # Select the appropriate URI and headers based on whether Azure API is used
+    if ($UseAzure -and $DeploymentName) {
+        $uri = "https://$UseAzure.openai.azure.com/openai/deployments/$DeploymentName/chat/completions?api-version=2024-02-01"
+        $headers = @{
+            "Content-Type" = "application/json"
+            "api-key" = $APIKey
+        }
+        $RequestBody = @{
+            model = $model
+            messages = $prompt
+            temperature = $temperature
+            max_tokens = $max_tokens
+            top_p = 0.95
+            frequency_penalty = 0
+            presence_penalty = 0
+            stop = $stop
+        } 
+    } 
+    
+    else {
+        $uri = 'https://api.openai.com/v1/chat/completions'
+        $headers = @{
+            "Content-Type" = "application/json"
+            "Authorization" = "Bearer $APIKey"
+        }
+        $RequestBody = @{
+            messages = $prompt
+            model = $model
+            temperature = $temperature
+            max_tokens = $max_tokens
+            stop = $stop
+        }
     }
 
-    $RequestBody = @{
-        messages = $prompt
-        model = $model
-        temperature= $temperature
-        max_tokens = $max_tokens
-        stop=$stop
-    } 
-
- 
-    #Convert the whole Body to be JSON, so that API can interpret it
     $RequestBody = $RequestBody | ConvertTo-Json -depth 3 
     $Requestbody = [System.Text.Encoding]::UTF8.GetBytes($RequestBody)
-
-    $uri = 'https://api.openai.com/v1/chat/completions'
 
     $RestMethodParameter=@{
         Method='Post'
         Uri = $uri
-        body=$RequestBody
-        Headers=$Headers
+        Body = $RequestBody
+        Headers = $Headers
     }
 
-    Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Built request. This is the RequestBody: "+($RequestBody)) 
+    Write-Verbose ("ShellGPT-Invoke-OpenAICompletion @ "+(Get-Date)+" | Sending request to URI: "+($uri)) 
 
     try {
         #Call the OpenAI completions API
@@ -392,31 +410,20 @@ function New-OpenAICompletionConversation {
     
     #>
     param (
-        [Parameter(Mandatory=$false)]      
-        [ValidateSet("Chat", "SentimentAndTickerAnalysis","SentimentAnalysis","IntentAnalysis","IntentAndSubjectAnalysis")]
-        [System.Object]$Character,              
-        [Parameter(Mandatory=$true)]  
-        [string]$query,                         
-        [Parameter(Mandatory=$true)]  
-        [string]$APIKey,                        
-        [Parameter(Mandatory=$false)] 
-        $instructor = "You are a helpful AI. You answer as concisely as possible.",
-        [Parameter(Mandatory=$false)] 
-        $assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?",
-        [Parameter(Mandatory=$false)]
-        [string]$model = "gpt-3.5-turbo",       
-        [Parameter(Mandatory=$false)]
-        [string]$stop = "\n",                   
-        [Parameter(Mandatory=$false)]
-        [double]$temperature = 0.4,             
-        [Parameter(Mandatory=$false)]
-        [int]$max_tokens = 900,                 
-        [Parameter(Mandatory=$false)]
-        [string]$filePath,                     
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowOutput = $false,           
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false        
+        [Parameter(Mandatory=$false)][ValidateSet("Chat", "SentimentAndTickerAnalysis","SentimentAnalysis","IntentAnalysis","IntentAndSubjectAnalysis")][System.Object]$Character,              
+        [Parameter(Mandatory=$true)]  [string]$query,                         
+        [Parameter(Mandatory=$true)]  [string]$APIKey,                        
+        [Parameter(Mandatory=$false)] $instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [Parameter(Mandatory=$false)] $assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?",
+        [Parameter(Mandatory=$false)] [string]$model = "gpt-3.5-turbo",       
+        [Parameter(Mandatory=$false)] [string]$stop = "\n",                   
+        [Parameter(Mandatory=$false)] [double]$temperature = 0.4,             
+        [Parameter(Mandatory=$false)] [int]$max_tokens = 900,                 
+        [Parameter(Mandatory=$false)] [string]$filePath,                     
+        [Parameter(Mandatory=$false)] [bool]$ShowOutput = $false,           
+        [Parameter(Mandatory=$false)] [bool]$ShowTokenUsage = $false,        
+        [Parameter(Mandatory=$false)] [string]$UseAzure,
+        [Parameter(Mandatory=$false)] [string]$DeploymentName
     )
 
     Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Initializing new conversation...")
@@ -463,7 +470,14 @@ function New-OpenAICompletionConversation {
     }
     
     Write-Verbose ("ShellGPT-New-OpenAICompletionConversation @ "+(Get-Date)+" | Calling OpenAI Completion API with prompt...") 
-    [System.Collections.ArrayList]$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+    if ($UseAzure)
+    {
+        [System.Collections.ArrayList]$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -UseAzure $UseAzure -DeploymentName $DeploymentName
+    }
+    else {
+        [System.Collections.ArrayList]$promptToReturn = Invoke-OpenAICompletion -Prompt $promptForAPI -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+    }
+
         
     return [System.Collections.ArrayList]$promptToReturn
 }
@@ -506,26 +520,18 @@ function Add-OpenAICompletionMessageToConversation {
     #>
 
     param (
-        [Parameter(Mandatory=$true)]  
-        [string]$query,                         
-        [Parameter(Mandatory=$true)]  
-        [System.Collections.ArrayList]$previousMessages,       
-        [Parameter(Mandatory=$true)]    
-        [string]$APIKey,                      
-        [Parameter(Mandatory=$false)]
-        [string]$model = "gpt-3.5-turbo",      
-        [Parameter(Mandatory=$false)]
-        [string]$stop = "\n",                   
-        [Parameter(Mandatory=$false)]
-        [double]$temperature = 0.4,             
-        [Parameter(Mandatory=$false)]
-        [int]$max_tokens = 900,                  
-        [Parameter(Mandatory=$false)]
-        [string]$filePath,                       
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowOutput = $false,                   
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false             
+        [Parameter(Mandatory=$true)][string]$query,                         
+        [Parameter(Mandatory=$true)][System.Collections.ArrayList]$previousMessages,       
+        [Parameter(Mandatory=$true)][string]$APIKey,    
+        [Parameter(Mandatory=$true)][string]$UseAzure,     
+        [Parameter(Mandatory=$true)][string]$DeploymentName,                             
+        [Parameter(Mandatory=$false)][string]$model = "gpt-3.5-turbo",      
+        [Parameter(Mandatory=$false)][string]$stop = "\n",                   
+        [Parameter(Mandatory=$false)][double]$temperature = 0.4,             
+        [Parameter(Mandatory=$false)][int]$max_tokens = 900,                  
+        [Parameter(Mandatory=$false)][string]$filePath,                       
+        [Parameter(Mandatory=$false)][bool]$ShowOutput = $false,                   
+        [Parameter(Mandatory=$false)][bool]$ShowTokenUsage = $false             
     )
 
     if ($filePath)
@@ -539,9 +545,14 @@ function Add-OpenAICompletionMessageToConversation {
     }
 
     # Call the Invoke-ChatGPT function to get the response from the API.
-    
     try {
-        [System.Collections.ArrayList]$returnPromptFromAPI = Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+        if ($useAzure){
+            [System.Collections.ArrayList]$returnPromptFromAPI = Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -UseAzure $useAzure -DeploymentName $DeploymentName
+
+        }
+        else {
+            [System.Collections.ArrayList]$returnPromptFromAPI = Invoke-OpenAICompletion -prompt $prompt -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+        }
     }
     catch {
         [System.Collections.ArrayList]$returnPromptFromAPI = $prompt }
@@ -1727,23 +1738,17 @@ function Start-ShellGPT {
     #>
 
     param (
-        [Parameter(Mandatory=$true)]    
-        [string]$APIKey,                        
-        [Parameter(Mandatory=$false)]
-        [string]$model = "gpt-3.5-turbo",       
-        [Parameter(Mandatory=$false)]
-        [string]$stop = "\n",                    
-        [Parameter(Mandatory=$false)]
-        [double]$temperature = 0.4,             
-        [Parameter(Mandatory=$false)]
-        [int]$max_tokens = 900,                 
-        [bool]$ShowOutput = $false,                    
-        [Parameter(Mandatory=$false)]
-        [bool]$ShowTokenUsage = $false,                 
-        [Parameter(Mandatory=$false)]
-        [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
-        [Parameter(Mandatory=$false)] 
-        [string]$assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
+        [Parameter(Mandatory=$true)][string]$APIKey,
+        [Parameter(Mandatory=$false)][string]$UseAzure,
+        [Parameter(Mandatory=$false)][string]$DeploymentName,  
+        [Parameter(Mandatory=$false)][string]$model = "gpt-3.5-turbo",       
+        [Parameter(Mandatory=$false)][string]$stop = "\n",                    
+        [Parameter(Mandatory=$false)][double]$temperature = 0.4,             
+        [Parameter(Mandatory=$false)][int]$max_tokens = 900,                 
+        [Parameter(Mandatory=$false)][bool]$ShowOutput = $false,                    
+        [Parameter(Mandatory=$false)][bool]$ShowTokenUsage = $false,                 
+        [Parameter(Mandatory=$false)][string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [Parameter(Mandatory=$false)] [string]$assistantReply = "Hello! I'm a ChatGPT-3.5 Model. How can I help you?"
     )
 
     Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Initializing... ") 
@@ -1812,7 +1817,14 @@ function Start-ShellGPT {
                 Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
                 Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Starting Conversation...") 
 
-                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                if ($UseAzure)
+                {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply -UseAzure $UseAzure -DeploymentName $DeploymentName
+                }
+                else {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                }
+
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
 
                 if ($InitialQuery.Contains("| out |"))
@@ -1852,7 +1864,15 @@ function Start-ShellGPT {
                     $InitialQuery = (($InitialQuery.split("|"))[0]).TrimStart(" ")
                     $InitialQuery = $InitialQuery.TrimEnd(" ")
 
-                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                    if ($UseAzure)
+                    {
+                        [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply -UseAzure $UseAzure -DeploymentName $DeploymentName
+                    }
+                    else 
+                    {
+                        [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                    }
+
                     Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
     
                     try {
@@ -1866,7 +1886,13 @@ function Start-ShellGPT {
                 }
                 else
                 {
-                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                    if ($UseAzure)
+                    {
+                        [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply -UseAzure $UseAzure -DeploymentName $DeploymentName
+                    }
+                    else {
+                        [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                    }
                 }    
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
             }
@@ -1897,7 +1923,14 @@ function Start-ShellGPT {
                 Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
                 Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
 
-                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+
+                if ($UseAzure)
+                {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -UseAzure $UseAzure -DeploymentName $DeploymentName
+                }
+                else {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                }
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
 
                 if ($userQuery.Contains("| out |"))
@@ -1952,7 +1985,12 @@ function Start-ShellGPT {
                     $UserQuery = (($UserQuery.split("|"))[0]).TrimStart(" ")
                     $UserQuery = $UserQuery.TrimEnd(" ")
 
-                    [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                    if ($UseAzure){
+                        [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -UseAzure $UseAzure -DeploymentName $DeploymentName
+                    }
+                    else {
+                        [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                    }
 
                     Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
     
@@ -1968,7 +2006,12 @@ function Start-ShellGPT {
                 }
                 else
                 {
-                    [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                    if ($useAzure) {
+                        [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -UseAzure $UseAzure -DeploymentName $DeploymentName
+                    }
+                    else {
+                        [System.Collections.ArrayList]$conversationPrompt = Add-OpenAICompletionMessageToConversation -query $userQuery -previousMessages $previousMessages -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput
+                    }
                 }
 
                 Write-Host ("CompletionAPI @ "+(Get-Date)+" | "+($conversationPrompt[($conversationPrompt.count)-1].content)) -ForegroundColor Green
