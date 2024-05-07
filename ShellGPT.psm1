@@ -2022,3 +2022,136 @@ function Start-ShellGPT {
         [System.Collections.ArrayList]$previousMessages = $conversationPrompt
     }
 }
+function Get-OpenAiQuickResponse {
+
+    param (
+        [Parameter(Mandatory=$true, Position = 0)] [ValidateNotNullOrEmpty()]  [string]$query,
+        [Parameter(Mandatory=$false, Position = 1)] [switch]$useAzure,   
+        [Parameter(Mandatory=$false, Position = 2)] [string]$DeploymentName,                   
+        [Parameter(Mandatory=$false, Position = 3)] [string]$model = "gpt-4",       
+        [Parameter(Mandatory=$false, Position = 4)] [string]$stop = "\n",                    
+        [Parameter(Mandatory=$false, Position = 5)] [double]$temperature = 0.4,             
+        [Parameter(Mandatory=$false, Position = 6)] [int]$max_tokens = 900,                 
+        [Parameter(Mandatory=$false, Position = 7)] [bool]$ShowOutput = $false,                    
+        [Parameter(Mandatory=$false, Position = 8)] [bool]$ShowTokenUsage = $false,                 
+        [Parameter(Mandatory=$false, Position = 9)] [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [Parameter(Mandatory=$false, Position = 10)] [string]$assistantReply = "Hello! I'm a ChatGPT-4 Model. How can I help you?",
+        [Parameter(Mandatory=$false, Position = 11)] [string]$Character = "Chat"
+    )
+ 
+    if ($useAzure)
+    {
+        if (!($env:AZ_OAI_APIKey))
+        {
+            Write-Host "Please define the environment variable AZ_OAI_APIKey with your Microsoft Azure OpenAI API Key"
+            throw "Please define the environment variable AZ_OAI_APIKey"
+        }
+
+        if (!($env:AZ_OAI_ResourceName))
+        {
+            Write-Host "Please define the environment variable AZ_OAI_ResourceName with the name of your Microsoft Azure OpenAI Resource"
+            throw "Please define the environment variable AZ_OAI_DeploymentName"
+        }
+        if (!($env:AZ_OAI_DeploymentName))
+        {
+            Write-Host "Please define the environment variable AZ_OAI_DeploymentName with the name of your Microsoft Azure OpenAI deployment"
+            throw "Please define the environment variable AZ_OAI_DeploymentName"
+        }
+        
+        $AzureResourceName = $env:AZ_OAI_ResourceName
+        $DeploymentName = $env:AZ_OAI_DeploymentName
+        $APIKey = $env:AZ_OAI_APIKey
+    }
+    else {
+        if (!($env:OAI_APIKey))
+        {
+            Write-Host "Please define the environment variable OAI_APIKey with your OpenAI API Key"
+            throw "Please define the environment variable OAI_APIKey"
+        }
+        $APIKey = $env:OAI_APIKey
+    }
+
+    $InitialQuery = $query
+ 
+    switch -Regex ($InitialQuery) {
+        "^file \|.*" {
+
+            $filePath = (($InitialQuery.split("|"))[1]).TrimStart(" ")
+            $filepath = $filePath.TrimEnd(" ")
+            $filePath = $filePath.Replace('"','')
+            $FileQuery = (($InitialQuery.split("|"))[2]).TrimStart(" ")
+ 
+            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted FilePath from Query is: "+($filePath)) 
+            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Extracted Query is: "+($FileQuery))
+            Write-Verbose ("ShellGPT @ "+(Get-Date)+" | Starting Conversation...") 
+ 
+            if ($useAzure){
+                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply -UseAzure $AzureResourceName -DeploymentName $DeploymentName
+            }
+            else {
+                [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $FileQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -filePath $filePath -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+            }
+            if ($InitialQuery.Contains("| out |"))
+                {
+                    $filePathOut = (($InitialQuery.split("|"))[4]).TrimStart(" ")
+                    $filePathOut = $filePathOut.TrimEnd(" ")
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+ 
+                    try {
+                        ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+ 
+                    }
+                    catch {
+                        Write-Host ("ShellGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                    }
+                }
+        }
+ 
+        "^\s*$" {
+            Write-Host ("ShellGPT @ "+(Get-Date)+" | You have not provided any input. Will not send this query to the CompletionAPI") -ForegroundColor Yellow
+            [System.Collections.ArrayList]$conversationPrompt = Set-OpenAICompletionCharacter $Character
+        }
+        default {
+ 
+            if ($InitialQuery.contains("| out |"))
+            {
+                $filePathOut = (($InitialQuery.split("|"))[2]).TrimStart(" ")
+                $filePathOut = $filePathOut.TrimEnd(" ")
+                $InitialQuery = (($InitialQuery.split("|"))[0]).TrimStart(" ")
+                $InitialQuery = $InitialQuery.TrimEnd(" ")
+                
+                if ($useAzure){
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply -UseAzure $AzureResourceName -DeploymentName $DeploymentName
+                }
+                else {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                }
+
+                Write-Host ("ShellGPT @ "+(Get-Date)+" | Writing output to file: "+($filePathOut)) -ForegroundColor Yellow
+ 
+                try {
+                    ($conversationPrompt[($conversationPrompt.count)-1].content) | Out-File -Encoding utf8 -FilePath $filePathOut
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | Successfully created file with output at: "+($filePathOut)) -ForegroundColor Green
+ 
+                }
+                catch {
+                    Write-Host ("ShellGPT @ "+(Get-Date)+" | Could not write output to file: "+($filePathOut)) -ForegroundColor Red
+                }
+            }
+            else
+            {
+                if ($useAzure){
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply -UseAzure $AzureResourceName -DeploymentName $DeploymentName
+                }
+                else {
+                    [System.Collections.ArrayList]$conversationPrompt = New-OpenAICompletionConversation -Character $Character -query $InitialQuery -instructor $instructor -APIKey $APIKey -temperature $temperature -max_tokens $max_tokens -model $model -stop $stop -ShowTokenUsage $ShowTokenUsage -ShowOutput $ShowOutput -assistantReply $assistantReply
+                }
+            }    
+        }
+    }
+ 
+    $APIKey = $null
+    return ($conversationPrompt[($conversationPrompt.count)-1].content)
+ 
+ }
