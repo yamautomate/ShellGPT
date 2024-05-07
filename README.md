@@ -1,6 +1,6 @@
 # ShellGPT - A PowerShell Module for the APIs of OpenAI.
 
-The [`ShellGPT`](https://www.powershellgallery.com/packages/CompletionAPI/1.0) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell either trough OpenAI directly or trhough Microsoft Azure OpenAI Service. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
+The [`ShellGPT`](https://www.powershellgallery.com/packages/ShellGPT/1.3.2) PowerShell Module is a command-line tool that provides an easy-to-use interface for accessing OpenAI's GPT API Endpoints using PowerShell. With this wrapper, you can generate natural language text, translate text, summarize articles, create images, create fine-tuned models, feed text-files, PDFs and .JSONs from your local device and more.
 
 The wrapper provides a simple syntax for calling the API and handling the response, making it easy to integrate GPT into your PowerShell scripts.
 
@@ -36,7 +36,7 @@ WHen you want to use ShellGPT with your very own Microsoft Azure OpenAI Service 
 ```
 
 ## Installation
-To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Modul`.
+To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Module`.
 1. Open PowerShell and run `Install-Module`:
 ```powershell
 Install-Module ShellGPT
