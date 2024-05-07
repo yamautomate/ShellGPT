@@ -1959,7 +1959,8 @@ function Start-ShellGPT {
                 $exportBool = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Do you want to export the current prompt before exiting? Enter 'y' or 'yes': ") -ForegroundColor yellow -NoNewLine; Read-Host) 
                 if ($exportBool -eq "y" -or $exportBool -eq "yes" -or $exportBool -eq "Y" -or $exportBool -eq "YES")
                 {
-                    $exportPath = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host) 
+                    $exportPath = $(Write-Host ("ShellGPT @ "+(Get-Date)+" | Provide the full path to the prompt*.json file that you want to export now and later continue the conversation on: ") -ForegroundColor yellow -NoNewLine; Read-Host)
+                    Export-OpenAIPromptToJson -Path $exportPath -prompt $previousMessages 
                     Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT exported the prompt to: "+($exportPath)) -ForegroundColor yellow
                 }
                 Write-Host ("ShellGPT @ "+(Get-Date)+" | ShellGPT is exiting now...") -ForegroundColor yellow
