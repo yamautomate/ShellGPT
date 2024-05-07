@@ -29,6 +29,11 @@ If yout want to include .PDFs in your prompts:
 - [iTextSharp.5.5.13.3](https://www.nuget.org/packages/iTextSharp#readme-body-tab) (itextsharp.dll) 
 - BouncyCastle.1.8.9 (BouncyCastle.Crypto.dll, dependency of itextsharp)
 
+## About using Microsoft Azure OpenAI Service
+WHen you want to use ShellGPT with your very own Microsoft Azure OpenAI Service you need to specify the following parameters:
+```powershell
+-UseAzure $NameOfAzureOpenAIService -DeploymentName $NameOfYourDeployedModel
+```
 
 ## Installation
 To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Module`.
