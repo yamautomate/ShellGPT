@@ -2025,7 +2025,7 @@ function Start-ShellGPT {
 function Get-OpenAiQuickResponse {
 
     param (
-        [Parameter(Mandatory=$true, Position = 0)] [ValidateNotNullOrEmpty()]  [string]$query,
+        [Parameter(Mandatory=$true, Position = 0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)] [ValidateNotNullOrEmpty()]  [string]$query,
         [Parameter(Mandatory=$false, Position = 1)] [switch]$useAzure,   
         [Parameter(Mandatory=$false, Position = 2)] [string]$DeploymentName,                   
         [Parameter(Mandatory=$false, Position = 3)] [string]$model = "gpt-4",       
@@ -2155,3 +2155,58 @@ function Get-OpenAiQuickResponse {
     return ($conversationPrompt[($conversationPrompt.count)-1].content)
  
  }
+
+ function AzAI {
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string]$query,
+
+        [string]$DeploymentName,
+
+        [string]$model = "gpt-4",
+
+        [string]$stop = "\n",
+
+        [double]$temperature = 0.4,
+
+        [int]$max_tokens = 900,
+
+        [bool]$ShowOutput = $false,
+
+        [bool]$ShowTokenUsage = $false,
+
+        [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+
+        [string]$assistantReply = "Hello! I'm a ChatGPT-4 Model. How can I help you?",
+
+        [string]$Character = "Chat"
+    )
+    
+    Get-OpenAiQuickResponse -query $query -useAzure:$true -DeploymentName $DeploymentName -model $model -stop $stop -temperature $temperature -max_tokens $max_tokens -ShowOutput $ShowOutput -ShowTokenUsage $ShowTokenUsage -instructor $instructor -assistantReply $assistantReply -Character $Character
+}
+
+function OpenAI {
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string]$query,
+
+        [string]$model = "gpt-4",
+
+        [string]$stop = "\n",
+
+        [double]$temperature = 0.4,
+
+        [int]$max_tokens = 900,
+
+        [bool]$ShowOutput = $false,
+
+        [bool]$ShowTokenUsage = $false,
+
+        [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+
+        [string]$assistantReply = "Hello! I'm a ChatGPT-4 Model. How can I help you?",
+
+        [string]$Character = "Chat"
+    )
+    Get-OpenAiQuickResponse -query $query -model $model -stop $stop -temperature $temperature -max_tokens $max_tokens -ShowOutput $ShowOutput -ShowTokenUsage $ShowTokenUsage -instructor $instructor -assistantReply $assistantReply -Character $Character
+}
