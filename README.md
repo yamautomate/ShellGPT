@@ -29,11 +29,7 @@ If yout want to include .PDFs in your prompts:
 - [iTextSharp.5.5.13.3](https://www.nuget.org/packages/iTextSharp#readme-body-tab) (itextsharp.dll) 
 - BouncyCastle.1.8.9 (BouncyCastle.Crypto.dll, dependency of itextsharp)
 
-## About using Microsoft Azure OpenAI Service
-WHen you want to use ShellGPT with your very own Microsoft Azure OpenAI Service you need to specify the following parameters:
-```powershell
--UseAzure $NameOfAzureOpenAIService -DeploymentName $NameOfYourDeployedModel
-```
+
 
 ## Installation
 To use the "ShellGPT" module and its functions, you need to install the module from PowerShell Gallery first, by using `Install-Module`.
@@ -52,6 +48,46 @@ Register-PackageSource -provider NuGet -name nugetRepository -location https://w
 ```powershell
  Install-Package Itextsharp
 ```
+## About using Microsoft Azure OpenAI Service
+WHen you want to use ShellGPT with your very own Microsoft Azure OpenAI Service you need to specify the following parameters:
+```powershell
+-UseAzure $NameOfAzureOpenAIService -DeploymentName $NameOfYourDeployedModel
+```
+
+## How to use QuickResponse functions
+The module offers the function ```Get-OpenAIQuickResponse``` that allows you to call either OpenAI's Completion API or Microsoft Azure Open AI, depending on if you use the parameter ```-useAzure "NameOfAzureResource"```. This functions leverages the usage of environment variables to define the needed details for authentication. 
+
+The following environment variables need to be set for using the OpenAI API in QuickResponse:
+- $env:OAI_APIKey
+  
+The following environment variables need to be set for using the Microsoft Azure OpenAI API in QuickResponse:
+
+- $env:AZ_OAI_APIKey
+- $env:AZ_OAI_ResourceName
+- $env:AZ_OAI_DeploymentName
+
+There are also wrappeper functions that further abbreviate a call to the API:
+```OpenAI``` is essentially an alias for ```Get-OpenAIQuickResponse``` with directly calling an OpenAI endpoint.
+```AzAI``` is an alias for ```Get-OpenAIQuickResponse``` with ```-useAzure``` so that you can directly call your Microsoft Azure OpenAI API.
+
+To call a Microsoft Azure OpenAI API, frist define the variables (they per default persist per sessions):
+```powershell
+$env:AZ_OAI_APIKey = "Your key from the Azure Resource"
+$env:AZ_OAI_ResourceName = "Name of your Azure OpenAI Resource"
+$env:AZ_OAI_DeploymentName = "Name of your deployment"
+```
+
+Then you can launch your queries:
+```powershell
+AzAI "What is the capitol of Switzerland?"
+The Capitol of Switzerland is Bern
+```
+
+You can also pipe values to these cmdlets:
+```powershell
+(Get-Content -Path C:\temp\log.txt) | AzAi -Instructor "You are a GPT Model that helps analyze data. You respond with a summary of data you have been queried"
+```
+
 
 ## How to start the interactive ChatBot for PowerShell
 
