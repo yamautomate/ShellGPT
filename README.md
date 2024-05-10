@@ -58,17 +58,30 @@ WHen you want to use ShellGPT with your very own Microsoft Azure OpenAI Service 
 The module offers the function ```Get-OpenAIQuickResponse``` that allows you to call either OpenAI's Completion API or Microsoft Azure Open AI, depending on if you use the parameter ```-useAzure "NameOfAzureResource"```. This functions leverages the usage of environment variables to define the needed details for authentication. 
 
 The following environment variables need to be set for using the OpenAI API in QuickResponse:
+```powershell
 - $env:OAI_APIKey
-  
+``` 
 The following environment variables need to be set for using the Microsoft Azure OpenAI API in QuickResponse:
-
+```powershell
 - $env:AZ_OAI_APIKey
 - $env:AZ_OAI_ResourceName
 - $env:AZ_OAI_DeploymentName
-
-There are also wrappeper functions that further abbreviate a call to the API:
+```
+There are also wrapper functions that further abbreviate a call to the API:
 ```OpenAI``` is essentially an alias for ```Get-OpenAIQuickResponse``` with directly calling an OpenAI endpoint.
 ```AzAI``` is an alias for ```Get-OpenAIQuickResponse``` with ```-useAzure``` so that you can directly call your Microsoft Azure OpenAI API.
+
+QuickResponse uses the following default values as parameters:
+```powershell
+- [string]$model = "gpt-4",       
+- [string]$stop = "\n",                    
+- [double]$temperature = 0.4,             
+- [int]$max_tokens = 900,                 
+- [bool]$ShowOutput = $false,                    
+- [bool]$ShowTokenUsage = $false,                 
+- [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+- [string]$assistantReply = "Hello! I'm a ChatGPT-4 Model. How can I help you?",
+```
 
 To call a Microsoft Azure OpenAI API, frist define the variables (they per default persist per sessions):
 ```powershell
