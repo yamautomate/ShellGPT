@@ -223,6 +223,23 @@ function New-OpenAICompletionPrompt {
                     }        
                 }
         }
+         #Remove characters the API can not interpret:
+        $query = $query -replace '(?m)^\s+',''
+        $query = $query -replace '\r',''
+        $query = $query -replace '●',''
+        $query = $query -replace '“',"'"
+        $query = $query -replace '”',"'"
+        $query = $query -replace 'ä',"ae"
+        $query = $query -replace 'ö',"oe"
+        $query = $query -replace 'ü',"ue"
+        $query = $query -replace 'ß',"ss"
+        $query = $query -replace '\u00A0', ' '
+
+        $iso = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+        $bytes = $iso.GetBytes($query)
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($query)
+
+        $query = [System.Text.Encoding]::utf8.GetString($bytes)
 
         try {
             Write-Verbose ("ShellGPT-New-OpenAICompletionPrompt @ "+(Get-Date)+" | Trying to read content of file using UTF-8 encoding...") 
@@ -562,7 +579,6 @@ function Add-OpenAICompletionMessageToConversation {
     return [System.Collections.ArrayList]$returnPromptFromAPI
     
 }
-
 function New-OpenAIEdit {
     <#
     .SYNOPSIS
@@ -658,7 +674,6 @@ function New-OpenAIEdit {
 
     return $convertedResponseForOutput
 }
-
 function New-OpenAIImage {
     param (
         [Parameter(Mandatory=$true)]
@@ -2166,7 +2181,7 @@ function Get-OpenAiQuickResponse {
         [int]$max_tokens = 900,
         [bool]$ShowOutput = $false,
         [bool]$ShowTokenUsage = $false,
-        [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [string]$instructor = "You are a helpful AI. You are being talked to trough a PowerShell interface. You answer as concisely as possible.",
         [string]$assistantReply = "Hello! I'm a ChatGPT-4 Model. How can I help you?",
         [string]$Character = "Chat"
     )
@@ -2183,7 +2198,7 @@ function OpenAI {
         [int]$max_tokens = 900,
         [bool]$ShowOutput = $false,
         [bool]$ShowTokenUsage = $false,
-        [string]$instructor = "You are a helpful AI. You answer as concisely as possible.",
+        [string]$instructor = "You are a helpful AI. You are being talked to trough a PowerShell interface. You answer as concisely as possible.",
         [string]$assistantReply = "Hello! I'm a ChatGPT-4 Model. How can I help you?",
         [string]$Character = "Chat"
     )
